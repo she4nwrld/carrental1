@@ -126,3 +126,29 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 </head>
 
 <body>
+
+<!-- header, ang taas nga bar -->
+<header class="topbar">
+  <div class="brand">
+    <?php if ($hasLogo) { ?>
+      <img src="<?= e($logo) ?>" alt="Shift Car Rental">
+    <?php } else { ?>
+      <span class="wordmark">SHI<span>F</span>T</span>
+    <?php } ?>
+  </div>
+
+  <nav class="menu" aria-label="Main navigation">
+    <a href="index.php" aria-current="page">Home</a>
+    <a href="#our-vehicles">Vehicles</a>
+    <a href="#locations">Locations</a>
+    <a href="#promo">Deals</a>
+    <a href="#reviews">Reviews</a>
+    <a href="#">FAQs</a>
+    <a href="#">Contact Us</a>
+  </nav>
+
+  <div class="right">
+    <a href="#">My booking</a>
+    <a class="bookbtn" href="<?= e($phoneLink) ?>">Book a Car</a>
+  </div>
+</header>
