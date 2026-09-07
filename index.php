@@ -91,3 +91,23 @@ $feedback = [
    'text' => 'Rented the Swift for a Casaroro Falls run. Sharp handling on the climb and the tank was full. Returning it was just as painless as picking it up.'],
 ];
 
+// asa nga filter pill ang naka-on
+$active = 'All';
+if (isset($_GET['category']) && in_array($_GET['category'], $categories, true)) {
+  $active = $_GET['category'];
+}
+
+$shown = [];
+foreach ($cars as $car) {
+  if ($active === 'All' || $car['type'] === $active) {
+    $shown[] = $car;
+  }
+}
+
+// filemtime sa css para muundang ang browser sa pag-cache sa daan
+$cssFile = 'css/style.css';
+$cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . $cssFile) : 1;
+
+$logo = 'images/shift-logo.png';
+$hasLogo = file_exists(__DIR__ . '/' . $logo);
+?>
