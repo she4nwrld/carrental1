@@ -1,9 +1,13 @@
+<?php
+// normally naka-set na ni sa header, pero para safe kung mag-usa ra ang footer
+$base = $base ?? '';
+?>
 <footer class="footer">
 
   <div class="footer-top">
 
     <div class="footer-brand">
-      <img src="images/shift-logo-white-transparent.png" alt="Shift Car Rental">
+      <img src="<?= e($base) ?>images/shift-logo-white-transparent.png" alt="Shift Car Rental">
       <p class="footer-tag">Car Rental</p>
 
       <!-- letters lang sa karon, wala pa koy icon files -->
@@ -17,11 +21,11 @@
     <nav class="footer-col" aria-label="Quick links">
       <h2>Quick Links</h2>
       <ul>
-        <li><a href="index.php#our-vehicles">Vehicles</a></li>
+        <li><a href="<?= e($base) ?>index.php#our-vehicles">Vehicles</a></li>
         <li><a href="#">Terms and Conditions</a></li>
         <li><a href="#">Fees and Charges Guide</a></li>
-        <li><a href="index.php#locations">Locations</a></li>
-        <li><a href="index.php#reviews">Reviews</a></li>
+        <li><a href="<?= e($base) ?>index.php#locations">Locations</a></li>
+        <li><a href="<?= e($base) ?>index.php#reviews">Reviews</a></li>
         <li><a href="#">FAQ</a></li>
       </ul>
     </nav>
@@ -45,13 +49,13 @@
 
   <div class="footer-bottom">
     <p>&copy; 2026 SHIFT Car Rental &mdash; All Rights Reserved</p>
-    <img class="footer-mark" src="images/standalone-footer-logo.png" alt="">
+    <img class="footer-mark" src="<?= e($base) ?>images/standalone-footer-logo.png" alt="">
   </div>
 
 </footer>
 
 <!-- ang slider script, gi-defer para human na ang HTML pag-dagan niini -->
-<script src="js/app.js" defer></script>
+<script src="<?= e($base) ?>js/app.js" defer></script>
 
 </body>
 </html>
