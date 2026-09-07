@@ -42,7 +42,17 @@ $cars = [
   ['name' => 'Toyota Innova',        'type' => 'MPV',       'price' => 3500,
    'gear' => 'Manual', 'seats' => 8, 'doors' => 5, 'bagL' => 3, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
    'img' => 'images/toyota-innova.png'],
+
+  ['name' => 'Toyota Wigo',              'type' => 'Hatchback', 'price' => 1600,
+   'gear' => 'Manual', 'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 1, 'kids' => 1, 'aircon' => true,
+   'img' => 'images/toyota-wigo.png'],
+
+  ['name' => 'Toyota Vios',              'type' => 'Sedan',     'price' => 2200,
+   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 1, 'kids' => 2, 'aircon' => true,
+   'img' => 'images/toyota-vios.png'],
+
 ];
+
 
 // mga shape sa icon para sa spec rows, gibutang dinhi para mubo ra ang markup sa card
 $specIcons = [
