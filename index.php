@@ -344,3 +344,32 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
   </div>
 </section>
+
+<!-- akong mga locations -->
+<section class="locations" id="locations">
+
+  <div class="sec-head">
+    <h2>Our <span>Locations</span></h2>
+    <p>Pick-up and delivery across Negros Oriental</p>
+  </div>
+
+  <div class="loc-grid">
+    <?php foreach ($branches as $branch) { ?>
+
+      <!-- ang photo maoy mupuno sa tibuok card, ang ngalan naa sa ibabaw niini -->
+      <article class="loc">
+        <img src="<?= e($branch['img']) ?>" alt="<?= e($branch['name']) ?> pick-up point" loading="lazy">
+
+        <div class="loc-body">
+          <span class="loc-pin" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+          </span>
+          <h3><?= e($branch['name']) ?></h3>
+          <p><?= e($branch['note']) ?></p>
+        </div>
+      </article>
+
+    <?php } ?>
+  </div>
+
+</section>
