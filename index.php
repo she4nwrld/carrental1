@@ -60,4 +60,18 @@ function spec($icons, $key, $text) {
        . 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' . $icons[$key] . '</svg></span>'
        . '<span class="txt">' . e($text) . '</span></span>';
 }
+$pickups = ['Sibulan Airport', 'Rizal Boulevard', 'Valencia'];
+
+$ages = ['18-24', '25-34', '35+'];
+
+// numero nga gitawagan sa mga tawo para mag-book, walay online form sa site
+$phone = '+63 912 345 6789';
+$phoneLink = 'tel:+639123456789';
+
+// mga branch nga makita sa locations strip, plain text na para maka-trabaho si e()
+$branches = [
+  ['name' => 'Sibulan Airport', 'note' => 'Meet & greet at arrivals',  'img' => 'images/loc-sibulan.png'],
+  ['name' => 'Rizal Boulevard', 'note' => 'Dumaguete City seaside hub', 'img' => 'images/loc-rizal.png'],
+  ['name' => 'Valencia',        'note' => 'Highland pick-up point',     'img' => 'images/loc-valencia.png'],
+];
 
