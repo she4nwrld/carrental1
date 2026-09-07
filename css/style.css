@@ -42,3 +42,47 @@ h1,h2,h3,p{margin:0 0 .6rem}
   position:absolute;width:1px;height:1px;
   overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;
 }
+
+/* ===== HEADER / TOPBAR ===== */
+.topbar{
+  position:sticky;top:0;   /* mopilit sa taas kung mo-scroll */
+  z-index:50;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(8px);   /* glass blur effect */
+  border-bottom:1px solid var(--line);
+}
+.topbar .wrap{
+  display:flex;
+  justify-content:space-between;   /* logo wala, button tuo */
+  align-items:center;
+  gap:18px;min-height:72px;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem}
+.brand img{height:38px;width:auto}
+.nav{display:flex;align-items:center;gap:26px}
+.nav a{
+  color:var(--muted);font-size:.95rem;font-weight:500;
+  position:relative;   /* kinahanglan para ma-anchor ang underline sa ubos */
+}
+.nav a:hover{color:var(--ink)}
+.nav a::after{
+  /* underline nga mo-abli gikan wala paingon tuo */
+  content:"";position:absolute;left:0;bottom:-6px;
+  width:0;height:2px;background:var(--brand);
+  transition:width .25s;
+}
+.nav a:hover::after{width:100%}
+.btn-book{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 20px;
+  border-radius:999px;   /* pill shape */
+  background:var(--brand);color:#fff;
+  font-weight:600;font-size:.92rem;
+  box-shadow:0 4px 14px rgba(11,107,203,.28);
+  transition:background .2s,transform .2s;
+}
+.btn-book:hover{
+  background:var(--brand-dark);
+  transform:translateY(-1px);   /* mo-lift gamay */
+}
+.burger{display:none;background:none;border:0;padding:8px;cursor:pointer}
