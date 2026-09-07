@@ -21,12 +21,12 @@ $base = $base ?? '';
     <nav class="footer-col" aria-label="Quick links">
       <h2>Quick Links</h2>
       <ul>
-        <li><a href="<?= e($base) ?>index.php#our-vehicles">Vehicles</a></li>
+        <li><a href="<?= e($base) ?>vehicles.php">Vehicles</a></li>
         <li><a href="#">Terms and Conditions</a></li>
         <li><a href="#">Fees and Charges Guide</a></li>
-        <li><a href="<?= e($base) ?>index.php#locations">Locations</a></li>
-        <li><a href="<?= e($base) ?>index.php#reviews">Reviews</a></li>
-        <li><a href="#">FAQ</a></li>
+        <li><a href="<?= e($base) ?>locations.php">Locations</a></li>
+        <li><a href="<?= e($base) ?>reviews.php">Reviews</a></li>
+        <li><a href="<?= e($base) ?>faqs.php">FAQ</a></li>
       </ul>
     </nav>
 
