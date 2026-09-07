@@ -44,12 +44,12 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 
   <nav class="menu" aria-label="Main navigation">
     <a href="<?= e($base) ?>index.php">Home</a>
-    <a href="<?= e($base) ?>index.php#our-vehicles">Vehicles</a>
-    <a href="<?= e($base) ?>index.php#locations">Locations</a>
-    <a href="<?= e($base) ?>index.php#promo">Deals</a>
-    <a href="<?= e($base) ?>index.php#reviews">Reviews</a>
-    <a href="#">FAQs</a>
-    <a href="#">Contact Us</a>
+    <a href="<?= e($base) ?>vehicles.php">Vehicles</a>
+    <a href="<?= e($base) ?>locations.php">Locations</a>
+    <a href="<?= e($base) ?>deals.php">Deals</a>
+    <a href="<?= e($base) ?>reviews.php">Reviews</a>
+    <a href="<?= e($base) ?>faqs.php">FAQs</a>
+    <a href="<?= e($base) ?>contact.php">Contact Us</a>
   </nav>
 
   <div class="right">
