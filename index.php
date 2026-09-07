@@ -316,3 +316,31 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
   </div>
 
 </section>
+
+<!-- promo banner -->
+<section class="promo" id="promo">
+  <div class="promo-inner">
+
+    <div class="promo-text">
+      <p class="promo-eyebrow">Dumaguete City Car Rentals</p>
+
+      <h2 class="promo-title">
+        Book now to get a
+        <span>special discount!</span>
+      </h2>
+
+      <p class="promo-desc">
+        Island roads, waterfalls and dive spots are waiting. Reserve early
+        and save on your Dumaguete trip. Free cancellation up to 24 hours
+        before pick-up.
+      </p>
+
+      <a class="promo-btn" href="<?= e($phoneLink) ?>">Book Now <span aria-hidden="true">&#8599;</span></a>
+    </div>
+
+    <div class="promo-photo">
+      <img src="images/promo-bg.png" alt="Coastline near Dumaguete City" loading="lazy">
+    </div>
+
+  </div>
+</section>
