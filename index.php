@@ -241,3 +241,61 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
   </form>
 </section>
+
+<!-- akong mga sakyanan -->
+<section class="vehicles" id="our-vehicles">
+
+  <h2 class="vehicles-title">Our <span>Vehicles</span></h2>
+
+  <!-- filter pills, ang kada usa link ra balik niini nga page -->
+  <div class="filters">
+    <?php foreach ($categories as $cat) { ?>
+      <a class="filter-tab<?php if ($cat === $active) echo ' is-active'; ?>"
+         href="index.php?category=<?= urlencode($cat) ?>#our-vehicles"
+         <?php if ($cat === $active) echo 'aria-current="true"'; ?>><?= e($cat) ?></a>
+    <?php } ?>
+  </div>
+
+  <!-- arrow, tulo ka cards, arrow -->
+  <div class="carousel" id="carCarousel" aria-roledescription="carousel" aria-label="Available vehicles">
+
+    <button class="arrow" type="button" data-dir="prev" aria-label="Previous vehicles">&#8592;</button>
+
+    <div class="slide-view">
+      <div class="slide-row" id="carRow">
+        <?php foreach ($shown as $car) { ?>
+
+          <article class="car">
+
+            <div class="car-photo">
+              <span class="car-tag"><?= e($car['type']) ?></span>
+              <img src="<?= e($car['img']) ?>" alt="<?= e($car['name']) ?>" loading="lazy">
+            </div>
+
+            <div class="car-top">
+              <h3><?= e($car['name']) ?></h3>
+              <p class="car-price">
+                <span class="amount">&#8369;<?= number_format($car['price']) ?></span>
+                <span class="per">per day</span>
+              </p>
+            </div>
+
+            <div class="car-specs">
+              <?= spec($specIcons, 'passenger', $car['seats'] . ' Passenger') ?>
+              <?= spec($specIcons, 'doors',     $car['doors'] . ' Doors') ?>
+              <?= spec($specIcons, 'bagL',      $car['bagL'] . ' Large Bags') ?>
+              <?= spec($specIcons, 'bagS',      $car['bagS'] . ' Small Bags') ?>
+              <?= spec($specIcons, 'kids',      $car['kids'] . ' Children') ?>
+              <?= spec($specIcons, 'gear',      $car['gear']) ?>
+              <?php if ($car['aircon']) { ?>
+                <?= spec($specIcons, 'aircon', 'Airconditioning') ?>
+              <?php } ?>
+            </div>
+
+            <a class="book" href="<?= e($phoneLink) ?>">
+              <span class="label">Book Now <span class="book-arrow" aria-hidden="true">&#8599;</span></span>
+            </a>
+
+          </article>
+
+        <?php } ?>
