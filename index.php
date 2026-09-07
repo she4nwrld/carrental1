@@ -1,10 +1,10 @@
 <?php
-// shortcut ni para dili ko magsige ug type ug htmlspecialchars
+// small shortcut so I don't type htmlspecialchars everywhere
 function e($text) {
   return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
 
-// google mark, gisulat kausa ra instead nga unom ka beses sa markup
+// google mark, written once instead of six times in the markup
 function googleMark() {
   return '<svg viewBox="0 0 48 48" aria-hidden="true">'
     . '<path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/>'
@@ -13,10 +13,11 @@ function googleMark() {
     . '<path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C37.8 39.2 44 34.5 44 24c0-1.3-.1-2.6-.4-3.9z"/>'
     . '</svg>';
 }
-// diri nagpuyo ang car list ug ang mga dropdown options
+
+// car list and the dropdown options live here
 $categories = ['All', 'Hatchback', 'Sedan', 'SUV', 'MPV'];
 
-// unom ka units, para even ang desktop page nga tulo
+// six units, so a desktop page of three comes out even
 $cars = [
   ['name' => 'Kia Picanto',          'type' => 'Hatchback', 'price' => 1800,
    'gear' => 'Auto',   'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 2, 'kids' => 1, 'aircon' => true,
@@ -42,7 +43,8 @@ $cars = [
    'gear' => 'Manual', 'seats' => 8, 'doors' => 5, 'bagL' => 3, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
    'img' => 'images/toyota-innova.png'],
 ];
-// icon shapes para sa spec rows, gibutang diri para mubo ra ang card markup
+
+// icon shapes for the spec rows, kept here so the card markup stays short
 $specIcons = [
   'passenger' => '<circle cx="12" cy="7.4" r="3.2"/><path d="M5.6 20a6.4 6.4 0 0 1 12.8 0"/>',
   'kids'      => '<circle cx="12" cy="5.6" r="2.3"/><path d="M12 7.9v5.4"/><path d="M8.6 10.4h6.8"/><path d="M9.9 20l2.1-6.7 2.1 6.7"/>',
@@ -53,29 +55,30 @@ $specIcons = [
   'gear'      => '<circle cx="12" cy="12" r="8.4"/><path d="M12 12l3.4-3"/><path d="M12 3.6v2"/>',
 ];
 
-// gi-wrap ang usa ka shape sa svg para kausa ra ni nako gisulat
+// wraps one shape in an svg so I only write this once
 function spec($icons, $key, $text) {
   if (!isset($icons[$key])) return '';
   return '<span><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
        . 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' . $icons[$key] . '</svg></span>'
        . '<span class="txt">' . e($text) . '</span></span>';
 }
+
 $pickups = ['Sibulan Airport', 'Rizal Boulevard', 'Valencia'];
 
 $ages = ['18-24', '25-34', '35+'];
 
-// numero nga gitawagan sa mga tawo para mag-book, walay online form sa site
+// number people call to book, no online form on the site
 $phone = '+63 912 345 6789';
 $phoneLink = 'tel:+639123456789';
 
-// mga branch nga makita sa locations strip, plain text na para maka-trabaho si e()
+// branches shown in the locations strip, plain text now so e() can do its job
 $branches = [
   ['name' => 'Sibulan Airport', 'note' => 'Meet & greet at arrivals',  'img' => 'images/loc-sibulan.png'],
   ['name' => 'Rizal Boulevard', 'note' => 'Dumaguete City seaside hub', 'img' => 'images/loc-rizal.png'],
   ['name' => 'Valencia',        'note' => 'Highland pick-up point',     'img' => 'images/loc-valencia.png'],
 ];
 
-// google reviews, unom ka buok para duha ka desktop pages ang slider
+// google reviews, six of them so the slider has two desktop pages
 $feedback = [
   ['name' => 'Miguel Torres', 'role' => 'Apo Island Weekender', 'when' => '2 weeks ago',
    'text' => 'The car was waiting for us right at Sibulan Airport arrivals, five minutes after landing we were already on the road to Dauin. Effortless from start to finish.'],
@@ -91,7 +94,7 @@ $feedback = [
    'text' => 'Rented the Swift for a Casaroro Falls run. Sharp handling on the climb and the tank was full. Returning it was just as painless as picking it up.'],
 ];
 
-// asa nga filter pill ang naka-on
+// which filter pill is on
 $active = 'All';
 if (isset($_GET['category']) && in_array($_GET['category'], $categories, true)) {
   $active = $_GET['category'];
@@ -104,14 +107,13 @@ foreach ($cars as $car) {
   }
 }
 
-// filemtime sa css para muundang ang browser sa pag-cache sa daan
+// filemtime on the css so the browser stops caching the old one
 $cssFile = 'css/style.css';
 $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . $cssFile) : 1;
 
 $logo = 'images/shift-logo.png';
 $hasLogo = file_exists(__DIR__ . '/' . $logo);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -127,7 +129,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
 <body>
 
-<!-- header, ang taas nga bar -->
+<!-- header -->
 <header class="topbar">
   <div class="brand">
     <?php if ($hasLogo) { ?>
@@ -155,7 +157,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
 <main>
 
-<!-- hero, uban ang white search box -->
+<!-- hero, plus the white search box -->
 <section class="hero">
 
   <p class="reviews">
@@ -205,7 +207,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
       </div>
     </div>
 
-        <div class="line">
+    <div class="line">
       <div class="col">
         <label for="category">Category</label>
         <select id="category" name="category">
@@ -242,12 +244,12 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
   </form>
 </section>
 
-<!-- akong mga sakyanan -->
+<!-- our vehicles -->
 <section class="vehicles" id="our-vehicles">
 
   <h2 class="vehicles-title">Our <span>Vehicles</span></h2>
 
-  <!-- filter pills, ang kada usa link ra balik niini nga page -->
+  <!-- filter pills, each one is just a link back to this page -->
   <div class="filters">
     <?php foreach ($categories as $cat) { ?>
       <a class="filter-tab<?php if ($cat === $active) echo ' is-active'; ?>"
@@ -256,7 +258,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
     <?php } ?>
   </div>
 
-  <!-- arrow, tulo ka cards, arrow -->
+  <!-- arrow, three cards, arrow -->
   <div class="carousel" id="carCarousel" aria-roledescription="carousel" aria-label="Available vehicles">
 
     <button class="arrow" type="button" data-dir="prev" aria-label="Previous vehicles">&#8592;</button>
@@ -300,7 +302,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
         <?php } ?>
 
-                <?php if (count($shown) === 0) { ?>
+        <?php if (count($shown) === 0) { ?>
           <p class="no-cars">No <?= e($active) ?> units available yet.</p>
         <?php } ?>
       </div>
@@ -310,7 +312,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
   </div>
 
-  <!-- dots ra, kay ang arrows naa na sa kilid sa cards -->
+  <!-- dots only, the arrows sit beside the cards -->
   <div class="controls" id="carControls">
     <div class="dots" id="carDots" aria-hidden="true"></div>
   </div>
@@ -345,7 +347,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
   </div>
 </section>
 
-<!-- akong mga locations -->
+<!-- our locations -->
 <section class="locations" id="locations">
 
   <div class="sec-head">
@@ -356,7 +358,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
   <div class="loc-grid">
     <?php foreach ($branches as $branch) { ?>
 
-      <!-- ang photo maoy mupuno sa tibuok card, ang ngalan naa sa ibabaw niini -->
+      <!-- photo fills the whole card, the name sits on top of it -->
       <article class="loc">
         <img src="<?= e($branch['img']) ?>" alt="<?= e($branch['name']) ?> pick-up point" loading="lazy">
 
@@ -374,7 +376,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
 </section>
 
-<!-- bag-ong reviews, pareho ra ang slider parts sa vehicles sa ibabaw -->
+<!-- recent reviews, same slider parts as the vehicles above -->
 <section class="reviews-sec" id="reviews">
 
   <div class="sec-head">
@@ -398,7 +400,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
           <article class="rv">
 
             <div class="rv-who">
-              <!-- unang letra sa ngalan ang gipuli sa profile photo -->
+              <!-- first letter of the name stands in for a profile photo -->
               <span class="rv-initial" aria-hidden="true"><?= e(strtoupper(substr($note['name'], 0, 1))) ?></span>
 
               <div class="rv-name">
@@ -429,7 +431,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
     <div class="dots" id="rvDots" aria-hidden="true"></div>
   </div>
 
-  <!-- plain text ra, walay link paingon sa maps -->
+  <!-- plain text, no link out to maps -->
   <p class="rv-more">&amp; 1,900+ more <span>Google reviews</span></p>
 
 </section>
@@ -445,7 +447,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
       <img src="images/shift-logo-white-transparent.png" alt="Shift Car Rental">
       <p class="footer-tag">Car Rental</p>
 
-      <!-- letters ra sa karon, wala pa'y icon files -->
+      <!-- letters for now, no icon files yet -->
       <div class="footer-social">
         <a href="#" aria-label="Facebook">f</a>
         <a href="#" aria-label="Instagram">ig</a>
@@ -490,13 +492,13 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 </footer>
 
 <script>
-/* usa ka slider function ra, gamiton sa vehicles ug sa reviews */
+/* one slider function, used by the vehicles and the reviews */
 (function () {
   'use strict';
 
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* i-sync ni sa mga media queries sa css */
+  /* keep this in step with the media queries in the css */
   function perView() {
     if (window.innerWidth <= 640) return 1;
     if (window.innerWidth <= 980) return 2;
@@ -514,7 +516,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
     var arrows = root.querySelectorAll('[data-dir]');
     var page = 0, timer = null, hold = null, i;
 
-    /* walay i-slide, so tangtangon ang arrows ug ang dot row */
+    /* nothing to slide, so drop the arrows and the dot row */
     if (cards.length === 0) {
       for (i = 0; i < arrows.length; i++) { arrows[i].hidden = true; }
       if (controls) { controls.hidden = true; }
@@ -530,13 +532,13 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
       return parseFloat(style.columnGap || style.gap) || 0;
     }
 
-    /* usa ka card slot = ang card plus ang gap human niini */
+    /* one card slot is the card plus the gap after it */
     function slide() {
       var per  = perView();
       var step = cards[0].getBoundingClientRect().width + gap();
       row.style.transform = 'translateX(-' + (page * per * step) + 'px)';
 
-      /* ang cards nga wala sa screen dili dapat masakpan sa tab key */
+      /* cards off screen should not catch the tab key */
       for (var c = 0; c < cards.length; c++) {
         var on = c >= page * per && c < (page + 1) * per;
         cards[c].setAttribute('aria-hidden', on ? 'false' : 'true');
@@ -563,7 +565,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
     function goTo(next) {
       var total = pages();
-      page = (next + total) % total;   /* mu-wrap sa duha ka direksyon */
+      page = (next + total) % total;   /* wraps both ways */
       slide();
     }
 
@@ -580,7 +582,7 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
     function setup() {
       var many = pages() > 1;
 
-      /* usa ra ka page ang cards, so walay trabaho ang arrows ug dots */
+      /* one page of cards means the arrows and dots have no job */
       for (var a = 0; a < arrows.length; a++) { arrows[a].disabled = !many; }
       if (controls) { controls.hidden = !many; }
 
@@ -594,11 +596,11 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
     for (i = 0; i < arrows.length; i++) {
       arrows[i].addEventListener('click', function () {
         goTo(this.dataset.dir === 'next' ? page + 1 : page - 1);
-        start();   /* ang pag-click mu-restart sa oras para dili dayon mulukso */
+        start();   /* clicking restarts the clock so it does not jump straight away */
       });
     }
 
-    /* pahulay lang samtang nagbasa o nag-tab ang usa ka tawo sa card */
+    /* hold still while someone is reading or tabbing through a card */
     root.addEventListener('mouseenter', stop);
     root.addEventListener('mouseleave', start);
     root.addEventListener('focusin', stop);
