@@ -1600,3 +1600,171 @@ html { scroll-behavior: smooth; }
     width: 100%;
   }
 }
+
+/* ===== admin dashboard ===== */
+.admin-wrap {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+/* upat ka tile sa ihap */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.stat {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .07);
+}
+
+.stat span {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+
+.stat strong {
+  font-family: Poppins, sans-serif;
+  font-size: 24px;
+  color: #1f2937;
+}
+
+/* ang tabs mo-gamit sa .filter-tab sa vehicles, gamay ra ang usab */
+.admin-filters {
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+/* card kada booking, mas dako ang photo column kay naa pay customer info */
+.ad-card {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 20px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .07);
+}
+
+.ad-photo {
+  background: #eef0f3;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  display: grid;
+  place-items: center;
+  padding: 8px;
+}
+
+.ad-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* linya sa customer: ngalan, email, telepono */
+.ad-customer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.ad-customer strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.ad-customer a {
+  color: #6b7280;
+  text-decoration: none;
+}
+
+.ad-customer a:hover {
+  color: #b8860b;
+  text-decoration: underline;
+}
+
+/* mga buton sa tuo sa ubos */
+.ad-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ad-actions form {
+  margin: 0;
+}
+
+.ad-btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+
+.ad-ok {
+  background: #f5b301;
+  color: #1f2937;
+}
+
+.ad-ok:hover {
+  background: #e0a300;
+}
+
+.ad-no {
+  background: #fff;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.ad-no:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.ad-done {
+  margin: 0;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+@media (max-width: 860px) {
+  .stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .ad-card {
+    grid-template-columns: 1fr;
+  }
+
+  .ad-actions {
+    flex-direction: column;
+  }
+
+  .ad-btn {
+    width: 100%;
+  }
+}
