@@ -131,3 +131,61 @@
            controls: 'rvControls', card: '.rv', delay: 6000 });
 
 })();
+
+/* ===== booking page: mo-kwenta sa total samtang mag-usab ang petsa ===== */
+(function () {
+  const box = document.getElementById('book-total');
+  if (!box) return;                       // dili booking page, undang na
+
+  const rate     = Number(box.dataset.rate) || 0;
+  const delivFee = Number(box.dataset.delivery) || 0;
+  const amount   = document.getElementById('total-amount');
+  const pickup   = document.getElementById('pickup_date');
+  const ret      = document.getElementById('return_date');
+  const deliv    = document.querySelector('input[name="delivery"]');
+
+  /* linya sa ubos sa total nga mo-ingon pila ka adlaw */
+  const note = document.createElement('span');
+  note.className = 'book-days';
+  amount.parentNode.insertBefore(note, amount.nextSibling);
+
+  function peso(n) {
+    return '\u20B1' + n.toLocaleString('en-PH');
+  }
+
+  function recalc() {
+    const from = new Date(pickup.value);
+    const to   = new Date(ret.value);
+
+    /* invalid o baliktad ang petsa, i-zero lang */
+    if (!pickup.value || !ret.value || isNaN(from) || isNaN(to) || to <= from) {
+      amount.textContent = peso(0);
+      note.textContent   = '';
+      return;
+    }
+
+    const ms   = to - from;
+    const days = Math.round(ms / 86400000);   // 86400000 ms = usa ka adlaw
+    let total  = days * rate;
+    if (deliv && deliv.checked) total += delivFee;
+
+    amount.textContent = peso(total);
+    note.textContent   = days + (days === 1 ? ' day' : ' days') + ' \u00D7 ' + peso(rate);
+  }
+
+  /* dili pwede mag-pili ug petsa nga lumabay na */
+  const today = new Date().toISOString().slice(0, 10);
+  pickup.min = today;
+  ret.min    = today;
+
+  /* kung mausab ang pickup, ang return dili pwede mas sayo pa niini */
+  pickup.addEventListener('change', function () {
+    ret.min = pickup.value || today;
+    recalc();
+  });
+
+  ret.addEventListener('change', recalc);
+  if (deliv) deliv.addEventListener('change', recalc);
+
+  recalc();   // sa pag-load, basin naay daan nga input
+})();
