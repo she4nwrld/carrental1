@@ -1,64 +1,15 @@
 <?php
+require 'auth.php';
+require 'database/config.php';
 
-// dinhi ang lista sa cars ug ang mga options sa dropdown
+// mga options sa dropdown ug filter pills
 $categories = ['All', 'Hatchback', 'Sedan', 'SUV', 'MPV'];
 
-// dose ka units, upat ka desktop pages sa slider nga tulo ka cards
-$cars = [
-  ['name' => 'Kia Picanto',              'type' => 'Hatchback', 'price' => 1800,
-   'gear' => 'Auto',   'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 2, 'kids' => 1, 'aircon' => true,
-   'img' => 'images/kia-picanto.png'],
+// kinahanglan pareho ni sa lista sa book.php ug function.php
+$pickups = ['Sibulan Airport', 'Rizal Boulevard', 'Valencia', 'Dauin', 'Bacong'];
+$ages    = ['21-24', '25-29', '30-64', '65+'];
 
-  ['name' => 'Suzuki Swift',             'type' => 'Hatchback', 'price' => 2000,
-   'gear' => 'Auto',   'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 2, 'kids' => 1, 'aircon' => true,
-   'img' => 'images/suzuki-swift.png'],
-
-  ['name' => 'Toyota Wigo',              'type' => 'Hatchback', 'price' => 1600,
-   'gear' => 'Manual', 'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 1, 'kids' => 1, 'aircon' => true,
-   'img' => 'images/toyota-wigo.png'],
-
-  ['name' => 'Toyota Corolla Altis',     'type' => 'Sedan',     'price' => 2800,
-   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/toyota-corolla-altis.png'],
-
-  ['name' => 'Honda City',               'type' => 'Sedan',     'price' => 2500,
-   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 1, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/honda-city.png'],
-
-  ['name' => 'Toyota Vios',              'type' => 'Sedan',     'price' => 2200,
-   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 1, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/toyota-vios.png'],
-
-  ['name' => 'Toyota Fortuner',          'type' => 'SUV',       'price' => 4500,
-   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/toyota-fortuner.png'],
-
-  ['name' => 'Mitsubishi Montero Sport', 'type' => 'SUV',       'price' => 5000,
-   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/mitsubishi-montero.png'],
-
-  ['name' => 'Ford Everest',             'type' => 'SUV',       'price' => 5500,
-   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/ford-everest.png'],
-
-  ['name' => 'Toyota Innova',            'type' => 'MPV',       'price' => 3500,
-   'gear' => 'Manual', 'seats' => 8, 'doors' => 5, 'bagL' => 3, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
-   'img' => 'images/toyota-innova.png'],
-
-  ['name' => 'Toyota Avanza',            'type' => 'MPV',       'price' => 2800,
-   'gear' => 'Manual', 'seats' => 7, 'doors' => 5, 'bagL' => 2, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
-   'img' => 'images/toyota-avanza.png'],
-
-  ['name' => 'Mitsubishi Xpander',       'type' => 'MPV',       'price' => 3000,
-   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 3, 'aircon' => true,
-   'img' => 'images/mitsubishi-xpander.png'],
-];
-
-$pickups = ['Sibulan Airport', 'Rizal Boulevard', 'Valencia'];
-
-$ages = ['18-24', '25-34', '35+'];
-
-// numero nga i-call sa mga tawo para mo-book, walay online form sa site
+// numero nga i-call para sa mga pangutana
 $phone = '+63 912 345 6789';
 $phoneLink = 'tel:+639123456789';
 
@@ -91,12 +42,22 @@ if (isset($_GET['category']) && in_array($_GET['category'], $categories, true)) 
   $active = $_GET['category'];
 }
 
-$shown = [];
-foreach ($cars as $car) {
-  if ($active === 'All' || $car['type'] === $active) {
-    $shown[] = $car;
-  }
+$pdo = getConnection();
+
+/* i-alias ang bag_large/bag_small ngadto sa bagL/bagS
+   para dili na usbon ang markup sa car cards sa ubos */
+$cols = "id, name, type, price, gear, seats, doors,
+         bag_large AS bagL, bag_small AS bagS, kids, aircon, img";
+
+if ($active === 'All') {
+  $stmt = $pdo->prepare("SELECT $cols FROM cars WHERE available = 1 ORDER BY type, price");
+} else {
+  $stmt = $pdo->prepare("SELECT $cols FROM cars WHERE available = 1 AND type = :type ORDER BY price");
+  $stmt->bindValue(':type', $active);
 }
+
+$stmt->execute();
+$shown = $stmt->fetchAll();
 
 // ---- diri na mo-sugod ang output ----
 $pageTitle = 'Shift Car Rental — Dumaguete City, Sibulan & Valencia';
@@ -116,7 +77,7 @@ require 'header.php';
 
   <p class="desc">
     Self-drive rentals across Dumaguete City, Sibulan and Valencia.
-    Pick a unit, give us a call, and we confirm the schedule with you
+    Pick a unit, reserve it online, and we confirm your schedule
     before you pay anything.
   </p>
 
@@ -189,7 +150,7 @@ require 'header.php';
         <input type="checkbox" id="delivery" name="delivery">
         <label class="checkbox-label" for="delivery">Deliver the car to Sibulan Airport arrivals</label>
       </div>
-      <div><a href="#">Already booked? <u>Manage your booking</u></a></div>
+      <div><a href="bookings.php">Already booked? <u>Manage your booking</u></a></div>
     </div>
 
   </form>
@@ -245,7 +206,8 @@ require 'header.php';
               <?php } ?>
             </div>
 
-            <a class="book" href="<?= e($phoneLink) ?>">
+            <!-- dala na ang car_id paingon sa booking form -->
+            <a class="book" href="book.php?car_id=<?= e($car['id']) ?>">
               <span class="label">Book Now <span class="book-arrow" aria-hidden="true">&#8599;</span></span>
             </a>
 
@@ -288,7 +250,7 @@ require 'header.php';
         before pick-up.
       </p>
 
-      <a class="promo-btn" href="<?= e($phoneLink) ?>">Book Now <span aria-hidden="true">&#8599;</span></a>
+      <a class="promo-btn" href="index.php#our-vehicles">Book Now <span aria-hidden="true">&#8599;</span></a>
     </div>
 
     <div class="promo-photo">
