@@ -1,62 +1,49 @@
 <?php
-// shortcut lang ni para dili ko mag-type ug htmlspecialchars kada higayon
-function e($text) {
-  return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-}
-
-// google mark, gisulat usa ka beses lang instead nga unom ka beses sa markup
-function googleMark() {
-  return '<svg viewBox="0 0 48 48" aria-hidden="true">'
-    . '<path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/>'
-    . '<path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>'
-    . '<path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>'
-    . '<path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C37.8 39.2 44 34.5 44 24c0-1.3-.1-2.6-.4-3.9z"/>'
-    . '</svg>';
-}
 
 // dinhi ang lista sa cars ug ang mga options sa dropdown
 $categories = ['All', 'Hatchback', 'Sedan', 'SUV', 'MPV'];
 
-// unom ka units, para pareho ang page sa desktop nga tulo ka cards
+// dose ka units, upat ka desktop pages sa slider nga tulo ka cards
 $cars = [
-  ['name' => 'Kia Picanto',          'type' => 'Hatchback', 'price' => 1800,
+  ['name' => 'Kia Picanto',              'type' => 'Hatchback', 'price' => 1800,
    'gear' => 'Auto',   'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 2, 'kids' => 1, 'aircon' => true,
    'img' => 'images/kia-picanto.png'],
 
-  ['name' => 'Suzuki Swift',         'type' => 'Hatchback', 'price' => 2000,
+  ['name' => 'Suzuki Swift',             'type' => 'Hatchback', 'price' => 2000,
    'gear' => 'Auto',   'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 2, 'kids' => 1, 'aircon' => true,
    'img' => 'images/suzuki-swift.png'],
-
-  ['name' => 'Toyota Corolla Altis', 'type' => 'Sedan',     'price' => 2800,
-   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/toyota-corolla-altis.png'],
-
-  ['name' => 'Honda City',           'type' => 'Sedan',     'price' => 2500,
-   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 1, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/honda-city.png'],
-
-  ['name' => 'Toyota Fortuner',      'type' => 'SUV',       'price' => 4500,
-   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/toyota-fortuner.png'],
-
-  ['name' => 'Toyota Innova',        'type' => 'MPV',       'price' => 3500,
-   'gear' => 'Manual', 'seats' => 8, 'doors' => 5, 'bagL' => 3, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
-   'img' => 'images/toyota-innova.png'],
 
   ['name' => 'Toyota Wigo',              'type' => 'Hatchback', 'price' => 1600,
    'gear' => 'Manual', 'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 1, 'kids' => 1, 'aircon' => true,
    'img' => 'images/toyota-wigo.png'],
 
+  ['name' => 'Toyota Corolla Altis',     'type' => 'Sedan',     'price' => 2800,
+   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
+   'img' => 'images/toyota-corolla-altis.png'],
+
+  ['name' => 'Honda City',               'type' => 'Sedan',     'price' => 2500,
+   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 1, 'kids' => 2, 'aircon' => true,
+   'img' => 'images/honda-city.png'],
+
   ['name' => 'Toyota Vios',              'type' => 'Sedan',     'price' => 2200,
    'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 1, 'kids' => 2, 'aircon' => true,
    'img' => 'images/toyota-vios.png'],
-     ['name' => 'Ford Everest',             'type' => 'SUV',       'price' => 5500,
+
+  ['name' => 'Toyota Fortuner',          'type' => 'SUV',       'price' => 4500,
    'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
-   'img' => 'images/ford-everest.png'],
+   'img' => 'images/toyota-fortuner.png'],
 
   ['name' => 'Mitsubishi Montero Sport', 'type' => 'SUV',       'price' => 5000,
    'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
    'img' => 'images/mitsubishi-montero.png'],
+
+  ['name' => 'Ford Everest',             'type' => 'SUV',       'price' => 5500,
+   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
+   'img' => 'images/ford-everest.png'],
+
+  ['name' => 'Toyota Innova',            'type' => 'MPV',       'price' => 3500,
+   'gear' => 'Manual', 'seats' => 8, 'doors' => 5, 'bagL' => 3, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
+   'img' => 'images/toyota-innova.png'],
 
   ['name' => 'Toyota Avanza',            'type' => 'MPV',       'price' => 2800,
    'gear' => 'Manual', 'seats' => 7, 'doors' => 5, 'bagL' => 2, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
@@ -65,28 +52,7 @@ $cars = [
   ['name' => 'Mitsubishi Xpander',       'type' => 'MPV',       'price' => 3000,
    'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 3, 'aircon' => true,
    'img' => 'images/mitsubishi-xpander.png'],
-
 ];
-
-
-// mga shape sa icon para sa spec rows, gibutang dinhi para mubo ra ang markup sa card
-$specIcons = [
-  'passenger' => '<circle cx="12" cy="7.4" r="3.2"/><path d="M5.6 20a6.4 6.4 0 0 1 12.8 0"/>',
-  'kids'      => '<circle cx="12" cy="5.6" r="2.3"/><path d="M12 7.9v5.4"/><path d="M8.6 10.4h6.8"/><path d="M9.9 20l2.1-6.7 2.1 6.7"/>',
-  'doors'     => '<path d="M6.5 4h8.2a3 3 0 0 1 3 3v13H6.5z"/><path d="M9.4 12.4h2.6"/>',
-  'aircon'    => '<path d="M4 7.6h8.4a2.8 2.8 0 1 0-2.8-2.8"/><path d="M4 12h13.4"/><path d="M4 16.4h8.4a2.8 2.8 0 1 1-2.8 2.8"/>',
-  'bagL'      => '<rect x="4.6" y="7.8" width="14.8" height="12.2" rx="2.2"/><path d="M9.2 7.8V5.4A1.4 1.4 0 0 1 10.6 4h2.8a1.4 1.4 0 0 1 1.4 1.4v2.4"/><path d="M12 11.4v5"/>',
-  'bagS'      => '<rect x="6.6" y="9.4" width="10.8" height="10.6" rx="2"/><path d="M10.1 9.4V7.3a1.4 1.4 0 0 1 1.4-1.4h1a1.4 1.4 0 0 1 1.4 1.4v2.1"/>',
-  'gear'      => '<circle cx="12" cy="12" r="8.4"/><path d="M12 12l3.4-3"/><path d="M12 3.6v2"/>',
-];
-
-// gi-wrap ang usa ka shape sulod sa svg, para usa ra ka pagsulat niini
-function spec($icons, $key, $text) {
-  if (!isset($icons[$key])) return '';
-  return '<span><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
-       . 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' . $icons[$key] . '</svg></span>'
-       . '<span class="txt">' . e($text) . '</span></span>';
-}
 
 $pickups = ['Sibulan Airport', 'Rizal Boulevard', 'Valencia'];
 
@@ -132,53 +98,10 @@ foreach ($cars as $car) {
   }
 }
 
-// filemtime sa css para mo-undang ang browser sa pag-cache sa daan
-$cssFile = 'css/style.css';
-$cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . $cssFile) : 1;
-
-$logo = 'images/shift-logo.png';
-$hasLogo = file_exists(__DIR__ . '/' . $logo);
+// ---- diri na mo-sugod ang output ----
+$pageTitle = 'Shift Car Rental — Dumaguete City, Sibulan & Valencia';
+require 'header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shift Car Rental — Dumaguete City, Sibulan &amp; Valencia</title>
-<meta name="description" content="Self-drive car rental in Dumaguete City, Sibulan and Valencia. Browse the fleet and call us to lock in your dates.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?= e($cssFile) ?>?v=<?= e($cssVersion) ?>">
-</head>
-
-<body>
-
-<!-- header -->
-<header class="topbar">
-  <div class="brand">
-    <?php if ($hasLogo) { ?>
-      <img src="<?= e($logo) ?>" alt="Shift Car Rental">
-    <?php } else { ?>
-      <span class="wordmark">SHI<span>F</span>T</span>
-    <?php } ?>
-  </div>
-
-  <nav class="menu" aria-label="Main navigation">
-    <a href="index.php" aria-current="page">Home</a>
-    <a href="#our-vehicles">Vehicles</a>
-    <a href="#locations">Locations</a>
-    <a href="#promo">Deals</a>
-    <a href="#reviews">Reviews</a>
-    <a href="#">FAQs</a>
-    <a href="#">Contact Us</a>
-  </nav>
-
-  <div class="right">
-    <a href="#">My booking</a>
-    <a class="bookbtn" href="<?= e($phoneLink) ?>">Book a Car</a>
-  </div>
-</header>
 
 <main>
 
@@ -213,9 +136,10 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
         <label for="return-location">Return Location</label>
         <select id="return-location" name="return_location">
           <option>Same as pick-up</option>
-          <option>Sibulan Airport</option>
-          <option>Rizal Boulevard</option>
-          <option>Valencia</option>
+          <?php foreach ($pickups as $place) { ?>
+            <!-- parehas ra nga lista sa pick-up, para dili ko mag-edit duha ka lugar -->
+            <option><?= e($place) ?></option>
+          <?php } ?>
         </select>
       </div>
       <div class="col wide">
@@ -310,14 +234,14 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
             </div>
 
             <div class="car-specs">
-              <?= spec($specIcons, 'passenger', $car['seats'] . ' Passenger') ?>
-              <?= spec($specIcons, 'doors',     $car['doors'] . ' Doors') ?>
-              <?= spec($specIcons, 'bagL',      $car['bagL'] . ' Large Bags') ?>
-              <?= spec($specIcons, 'bagS',      $car['bagS'] . ' Small Bags') ?>
-              <?= spec($specIcons, 'kids',      $car['kids'] . ' Children') ?>
-              <?= spec($specIcons, 'gear',      $car['gear']) ?>
+              <?= spec('passenger', $car['seats'] . ' Passenger') ?>
+              <?= spec('doors',     $car['doors'] . ' Doors') ?>
+              <?= spec('bagL',      $car['bagL'] . ' Large Bags') ?>
+              <?= spec('bagS',      $car['bagS'] . ' Small Bags') ?>
+              <?= spec('kids',      $car['kids'] . ' Children') ?>
+              <?= spec('gear',      $car['gear']) ?>
               <?php if ($car['aircon']) { ?>
-                <?= spec($specIcons, 'aircon', 'Airconditioning') ?>
+                <?= spec('aircon', 'Airconditioning') ?>
               <?php } ?>
             </div>
 
