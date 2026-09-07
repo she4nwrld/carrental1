@@ -1768,3 +1768,373 @@ html { scroll-behavior: smooth; }
     width: 100%;
   }
 }
+
+/* ===== inner pages: vehicles, locations, deals, reviews, faqs, contact ===== */
+/* gi-share sa tanan bag-ong page, parehas nga look sa home sections */
+
+.page-main { background: #F7F8FA; }
+
+.page-hero {
+  text-align: center;
+  padding: 64px var(--side) 44px;
+  background: white;
+  border-bottom: 1px solid #eee;
+}
+
+.page-hero h1 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 36px;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+.page-hero h1 span { color: #FEB802; }
+
+.page-hero p {
+  margin: 14px auto 0;
+  max-width: 560px;
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.page-hero .rv-rating { justify-content: center; margin-top: 22px; }
+
+/* --- vehicles page: grid instead sa carousel --- */
+.page-vehicles { padding-top: 44px; }
+
+.cars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+  padding: 0 var(--side) 70px;
+}
+
+/* ang .car naka-flex-basis para sa carousel, i-reset sa grid */
+.cars-grid .car { flex: none; width: auto; }
+
+/* --- locations page --- */
+.loc-detail-list { padding: 50px var(--side); display: grid; gap: 28px; }
+
+.loc-detail {
+  display: flex;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(19, 26, 44, .06);
+}
+
+.loc-detail-photo { flex: 0 0 40%; min-height: 260px; }
+.loc-detail-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.loc-detail-body { flex: 1; padding: 30px 34px; }
+
+.loc-detail-body .loc-pin {
+  display: inline-flex;
+  width: 34px; height: 34px;
+  align-items: center; justify-content: center;
+  background: #FEB802;
+  border-radius: 50%;
+  color: #131A2C;
+}
+.loc-detail-body .loc-pin svg { width: 18px; height: 18px; }
+
+.loc-detail-body h2 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  margin: 12px 0 2px;
+}
+
+.loc-detail-note { color: #FEB802; font-weight: 600; font-size: 13px; margin: 0 0 10px; }
+
+.loc-detail-body > p { color: #4b5563; font-size: 14px; line-height: 1.65; }
+
+.loc-detail-meta { list-style: none; padding: 0; margin: 14px 0 20px; }
+.loc-detail-meta li { font-size: 13.5px; color: #4b5563; margin-bottom: 6px; }
+.loc-detail-meta a { color: #b8860b; font-weight: 600; }
+
+.loc-delivery { padding: 20px var(--side) 70px; text-align: center; }
+
+.loc-delivery-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.loc-delivery-pills .filter-tab { cursor: default; }
+
+/* --- deals page --- */
+.deals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gap);
+  padding: 50px var(--side);
+}
+
+.deal-card {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: 26px 28px;
+  box-shadow: 0 4px 18px rgba(19, 26, 44, .06);
+}
+
+.deal-card .car-tag { position: static; display: inline-block; margin-bottom: 14px; }
+
+.deal-card h2 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  margin: 0 0 10px;
+}
+
+.deal-card p { color: #4b5563; font-size: 14px; line-height: 1.65; margin: 0 0 12px; }
+
+.deal-code {
+  background: #FFF7E0;
+  border: 1px dashed #FEB802;
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: inline-block;
+  font-size: 13.5px;
+}
+
+.deal-card .promo-btn { margin-top: 6px; }
+
+/* --- reviews page: grid sa tanan reviews --- */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+  padding: 50px var(--side) 20px;
+}
+
+/* ang .rv naka-flex-basis para sa slider, i-reset sa grid */
+.reviews-grid .rv { flex: none; width: auto; }
+
+.page-main .rv-more { padding-bottom: 60px; }
+
+/* --- faqs page --- */
+.faq-wrap { max-width: 780px; margin: 0 auto; padding: 44px var(--side) 70px; }
+
+.faq-group {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  margin: 34px 0 14px;
+}
+.faq-group:first-child { margin-top: 0; }
+
+.faq-item {
+  background: white;
+  border: 1px solid #E6E8EC;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 18px;
+  font-weight: 600;
+  font-size: 14.5px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+
+.faq-caret { color: #FEB802; transition: transform .2s; }
+.faq-item[open] .faq-caret { transform: rotate(180deg); }
+
+.faq-item p {
+  margin: 0;
+  padding: 0 18px 16px;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.faq-still { text-align: center; margin-top: 34px; color: #6b7280; font-size: 14.5px; }
+.faq-still a { color: #b8860b; font-weight: 600; }
+
+/* --- contact page --- */
+.contact-wrap {
+  display: flex;
+  gap: 34px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 50px var(--side) 70px;
+  align-items: flex-start;
+}
+
+.contact-info {
+  flex: 0 0 320px;
+  background: white;
+  border-radius: 16px;
+  padding: 28px 30px;
+  box-shadow: 0 4px 18px rgba(19, 26, 44, .06);
+}
+
+.contact-info h2 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  margin: 0 0 16px;
+}
+
+.contact-info ul { list-style: none; padding: 0; margin: 0 0 16px; }
+.contact-info li { font-size: 13.5px; color: #4b5563; margin-bottom: 10px; line-height: 1.5; }
+.contact-info a { color: #b8860b; font-weight: 600; }
+.contact-info > p { font-size: 13px; color: #6b7280; line-height: 1.6; margin: 0; }
+
+.contact-form-side {
+  flex: 1;
+  background: white;
+  border-radius: 16px;
+  padding: 28px 30px;
+  box-shadow: 0 4px 18px rgba(19, 26, 44, .06);
+}
+
+/* textarea, gi-pareho sa auth-field inputs */
+.contact-form-side textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 14.5px;
+  resize: vertical;
+}
+.contact-form-side textarea:focus {
+  outline: none;
+  border-color: #FEB802;
+  box-shadow: 0 0 0 3px rgba(254, 184, 2, .18);
+}
+
+.contact-sent {
+  background: #ECFDF5;
+  border: 1px solid #6EE7B7;
+  color: #065F46;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin: 0 0 18px;
+}
+
+/* --- responsive sa bag-ong pages --- */
+@media (max-width: 980px) {
+  .cars-grid { grid-template-columns: repeat(2, 1fr); }
+  .reviews-grid { grid-template-columns: repeat(2, 1fr); }
+  .deals-grid { grid-template-columns: 1fr; }
+  .loc-detail { flex-direction: column; }
+  .loc-detail-photo { flex: none; max-height: 240px; }
+  .contact-wrap { flex-direction: column; }
+  .contact-info { flex: none; width: auto; align-self: stretch; }
+}
+
+@media (max-width: 640px) {
+  .page-hero h1 { font-size: 28px; }
+  .cars-grid { grid-template-columns: 1fr; }
+  .reviews-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== customer review form (reviews.php) ===== */
+
+.review-form-sec { max-width: 640px; margin: 0 auto; padding: 44px var(--side) 10px; }
+
+.review-form-card,
+.review-gate {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 30px;
+  box-shadow: 0 4px 18px rgba(19, 26, 44, .06);
+}
+
+.review-gate { text-align: center; }
+
+.review-form-card h2,
+.review-gate h2 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+.review-form-card h2 span,
+.review-gate h2 span { color: #FEB802; }
+
+.review-gate p { color: #6b7280; font-size: 14.5px; margin: 0; }
+.review-gate a { color: #b8860b; font-weight: 600; }
+
+/* radio stars: naka-reverse ang order sa HTML (5 una) para ang
+   ~ sibling selector maka-highlight sa mga bituon sa wala sa hover/checked */
+.star-pick {
+  border: 0;
+  padding: 0;
+  margin: 0 0 16px;
+  display: inline-flex;
+  flex-direction: row-reverse;
+  gap: 2px;
+}
+
+.star-pick legend {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.star-pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+
+.star-pick label {
+  font-size: 32px;
+  line-height: 1;
+  color: #D8DCE3;
+  cursor: pointer;
+  transition: color .12s;
+}
+
+.star-pick label:hover,
+.star-pick label:hover ~ label,
+.star-pick input:checked ~ label { color: #FEB802; }
+
+.star-pick input:focus-visible + label { outline: 3px solid #FEB802; outline-offset: 2px; border-radius: 4px; }
+
+/* textarea sa review, parehas sa contact form */
+.review-form-card textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 14.5px;
+  resize: vertical;
+}
+.review-form-card textarea:focus {
+  outline: none;
+  border-color: #FEB802;
+  box-shadow: 0 0 0 3px rgba(254, 184, 2, .18);
+}
+
+.review-delete { margin-top: 14px; text-align: center; }
+
+.review-delete button {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px;
+}
+
+.customer-reviews { padding-top: 34px; }
+.customer-reviews .reviews-grid { padding-top: 0; padding-bottom: 30px; }
+
+@media (max-width: 640px) {
+  .review-form-card, .review-gate { padding: 22px 20px; }
+  .star-pick label { font-size: 28px; }
+}
