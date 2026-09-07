@@ -235,3 +235,46 @@ section{padding:66px 0}
   background:var(--brand);
   width:26px;border-radius:999px;   /* mo-tag-as ang active dot */
 }
+
+/* ===== CAR CARDS ===== */
+.car{
+  width:292px;   /* fixed width, kinahanglan sa carousel math sa JS */
+  background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden;
+  display:flex;flex-direction:column;
+  transition:transform .25s,box-shadow .25s;
+}
+.car:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.car-img{
+  background:var(--soft);padding:18px;
+  display:grid;place-items:center;   /* i-center ang car photo */
+  min-height:160px;   /* pareho ang height bisan lain-lain ang image */
+}
+.car-img img{max-height:130px;width:auto;object-fit:contain}
+.car-body{
+  padding:16px 18px 20px;
+  display:flex;flex-direction:column;flex:1;   /* flex:1 para pareho taas ang cards */
+}
+.car-name{font-size:1.05rem;font-weight:700;margin:0}
+.car-type{font-size:.82rem;color:var(--muted);margin-bottom:12px}
+.price{display:flex;align-items:baseline;gap:5px;margin-bottom:14px}
+.price b{font-size:1.35rem;color:var(--brand)}
+.price small{font-size:.8rem;color:var(--muted)}
+.specs{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;   /* 2 columns nga specs */
+  padding:14px 0;margin-bottom:16px;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.spec{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--muted)}
+.spec svg{
+  width:15px;height:15px;
+  flex:0 0 auto;   /* dili mo-squish ang icon */
+  color:var(--brand);
+}
+.btn-car{
+  margin-top:auto;   /* i-tulod sa pinakaubos, pareho ang alignment */
+  text-align:center;padding:11px 16px;border-radius:10px;
+  font-weight:600;font-size:.92rem;
+  background:var(--ink);color:#fff;transition:background .2s;
+}
+.btn-car:hover{background:var(--brand)}
