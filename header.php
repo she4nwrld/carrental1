@@ -75,12 +75,12 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 </header>
 
 <?php if (!isLoggedIn()) { ?>
-<!-- modal: mo-gawas kung guest mo-click sa Book Now — kinahanglan mag-login o mag-create account una -->
+<!-- modal: mo-gawas kung guest mo-click sa Book Now kinahanglan mag-login o mag-create account una -->
 <div class="auth-modal" id="auth-modal" hidden>
   <div class="auth-modal-box" role="dialog" aria-labelledby="auth-modal-title">
     <button type="button" class="auth-modal-close" id="auth-modal-close" aria-label="Close">&times;</button>
     <h3 id="auth-modal-title">Ready to book?</h3>
-    <p>You need an account to book a vehicle. Log in or create one — it only takes a minute.</p>
+    <p>You need an account to book a vehicle. Log in or create one it only takes a minute.</p>
     <div class="auth-modal-actions">
       <a class="am-btn" href="<?= e($base) ?>login.php?next=<?= urlencode($base ? '../vehicles.php' : 'vehicles.php') ?>">Log In</a>
       <a class="am-btn am-ghost" href="<?= e($base) ?>signup.php">Create Account</a>
