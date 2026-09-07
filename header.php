@@ -27,6 +27,7 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= e($base . $cssFile) ?>?v=<?= e($cssVersion) ?>">
+<link rel="stylesheet" href="<?= e($base) ?>css/fixes.css">
 </head>
 
 <body>
@@ -65,9 +66,9 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 
     <?php } else { ?>
 
-      <!-- bisita: My Booking ug Book Now — pareho mo-abli sa auth modal -->
-      <a href="#" class="needs-auth" data-next="<?= e($base) ?>bookings.php">My Booking</a>
-      <a class="bookbtn needs-auth" href="#" id="booknow-btn" data-next="<?= e($base) ?>vehicles.php">Book Now</a>
+      <!-- bisita: My Booking ug Book Now -->
+      <a href="<?= e($base) ?>bookings.php">My Booking</a>
+      <a class="bookbtn" href="#" id="booknow-btn">Book Now</a>
 
     <?php } ?>
   </div>
@@ -81,7 +82,7 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
     <h3 id="auth-modal-title">Ready to book?</h3>
     <p>You need an account to book a vehicle. Log in or create one — it only takes a minute.</p>
     <div class="auth-modal-actions">
-      <a class="am-btn" id="am-login" href="<?= e($base) ?>login.php">Log In</a>
+      <a class="am-btn" href="<?= e($base) ?>login.php?next=<?= urlencode($base ? '../vehicles.php' : 'vehicles.php') ?>">Log In</a>
       <a class="am-btn am-ghost" href="<?= e($base) ?>signup.php">Create Account</a>
     </div>
   </div>
@@ -90,19 +91,25 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 (function () {
   var modal = document.getElementById('auth-modal');
   if (!modal) return;
-  var loginLink = document.getElementById('am-login');
-  var loginBase = loginLink.getAttribute('href');
+  var loginLink = modal.querySelector('.auth-modal-actions a.am-btn');
 
-  // tanan link nga naay .needs-auth mo-abli sa modal (My Booking ug Book Now)
-  document.querySelectorAll('.needs-auth').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      var next = btn.getAttribute('data-next') || '';
-      loginLink.setAttribute('href', next ? loginBase + '?next=' + encodeURIComponent(next) : loginBase);
-      modal.hidden = false;
-    });
+  function openModal(e, nextUrl) {
+    e.preventDefault();
+    if (nextUrl && loginLink) {
+      var base = loginLink.getAttribute('href').split('?')[0];
+      loginLink.setAttribute('href', base + '?next=' + encodeURIComponent(nextUrl));
+    }
+    modal.hidden = false;
+  }
+
+  var btn = document.getElementById('booknow-btn');
+  if (btn) btn.addEventListener('click', function (e) { openModal(e); });
+
+  /* guest presses Book Now on a car card: show the modal instead of the login page */
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest ? e.target.closest('a.book') : null;
+    if (link) openModal(e, link.getAttribute('href'));
   });
-
   document.getElementById('auth-modal-close').addEventListener('click', function () { modal.hidden = true; });
   modal.addEventListener('click', function (e) { if (e.target === modal) modal.hidden = true; });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.hidden = true; });

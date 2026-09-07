@@ -2183,3 +2183,144 @@ html { scroll-behavior: smooth; }
   font-size: 26px; line-height: 1; color: #9AA1AC;
 }
 .auth-modal-close:hover { color: #131A2C; }
+
+/* ---------- 1. MEDIUM SIZING SITE-WIDE ---------- */
+/* shrinking the root font scales every rem/em based size down ~12% */
+html {
+  font-size: 14px;
+}
+
+/* page sections: less empty space so pages feel medium, not huge */
+.page-main section,
+.page-hero,
+.contact-wrap {
+  padding-top: 2.2rem;
+  padding-bottom: 2.2rem;
+}
+
+.page-hero h1 {
+  font-size: 2.1rem;
+}
+
+.page-hero p {
+  font-size: 0.95rem;
+}
+
+/* ---------- 2. COMPACT SIGNUP / LOGIN ---------- */
+.auth-main {
+  padding: 2rem 1rem;
+  min-height: auto;
+}
+
+.auth-card {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 1.6rem 1.8rem;
+}
+
+.auth-card h1 {
+  font-size: 1.45rem;
+  margin-bottom: 0.25rem;
+}
+
+.auth-sub {
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.auth-field {
+  margin-bottom: 0.75rem;
+}
+
+.auth-field label {
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+}
+
+.auth-field input,
+.auth-field textarea,
+.auth-field select {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.auth-field small {
+  font-size: 0.7rem;
+}
+
+.auth-btn {
+  padding: 0.65rem 1rem;
+  font-size: 0.95rem;
+}
+
+.auth-alt {
+  font-size: 0.85rem;
+  margin-top: 0.9rem;
+}
+
+/* logo image size on signup / login top bar */
+.auth-page .brand img {
+  height: 34px;
+  width: auto;
+  display: block;
+}
+
+/* ---------- 3. CONTACT US LAYOUT ---------- */
+/* two clean columns with a real gap so nothing overlaps */
+.contact-wrap {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 520px);
+  gap: 2rem;
+  justify-content: center;
+  align-items: start;
+  max-width: 960px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.contact-info {
+  padding: 1.5rem;
+}
+
+.contact-info h2 {
+  font-size: 1.25rem;
+}
+
+.contact-info li,
+.contact-info p {
+  font-size: 0.88rem;
+}
+
+.contact-form-side {
+  padding: 1.5rem 1.75rem;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* smaller input boxes inside the contact form */
+.contact-form-side .auth-field input,
+.contact-form-side .auth-field textarea {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  max-width: 100%;
+}
+
+.contact-form-side .auth-field textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.contact-form-side .auth-btn {
+  width: 100%;
+}
+
+/* stack on small screens */
+@media (max-width: 760px) {
+  .contact-wrap {
+    grid-template-columns: 1fr;
+  }
+}

@@ -75,13 +75,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/fixes.css">
 </head>
 
 <body class="auth-page">
 
 <header class="topbar">
   <div class="brand">
-    <a href="index.php"><span class="wordmark">SHI<span>F</span>T</span></a>
+    <a href="index.php">
+      <?php if (file_exists(__DIR__ . '/images/shift-logo.png')) { ?>
+        <img src="images/shift-logo.png" alt="Shift Car Rental">
+      <?php } else { ?>
+        <span class="wordmark">SHI<span>F</span>T</span>
+      <?php } ?>
+    </a>
   </div>
   <div class="right">
     <a href="login.php">Already have an account?</a>
