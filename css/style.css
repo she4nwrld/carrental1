@@ -278,3 +278,41 @@ section{padding:66px 0}
   background:var(--ink);color:#fff;transition:background .2s;
 }
 .btn-car:hover{background:var(--brand)}
+
+/* ===== PROMO BANNER ===== */
+.promo{
+  position:relative;border-radius:20px;overflow:hidden;
+  background:var(--ink);color:#fff;
+  padding:56px 44px;margin:10px 0;
+}
+.promo::after{
+  /* background image, faded para mabasa ang text */
+  content:"";position:absolute;inset:0;
+  background:url('../images/promo-bg.png') center/cover no-repeat;
+  opacity:.28;
+}
+.promo-text{position:relative;z-index:2;max-width:560px}  /* ibabaw sa image */
+.promo-text h2{font-size:clamp(1.6rem,3vw,2.3rem);color:#fff}
+.promo-text p{color:rgba(255,255,255,.82)}
+.promo .btn-book{margin-top:14px;background:#fff;color:var(--ink)}
+.promo .btn-book:hover{background:var(--star);color:var(--ink)}
+
+/* ===== LOCATION CARDS ===== */
+.locations .grid{
+  display:grid;gap:22px;
+  grid-template-columns:repeat(3,minmax(0,1fr));   /* 3 branches magtapad */
+}
+.loc{position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.loc img{
+  height:230px;width:100%;
+  object-fit:cover;   /* mo-fill nga dili ma-stretch */
+  transition:transform .4s;
+}
+.loc:hover img{transform:scale(1.06)}   /* zoom gamay kung hover */
+.loc-body{
+  /* text sa ibabaw sa image, naa sa ilawom */
+  position:absolute;inset:auto 0 0 0;padding:18px 20px;color:#fff;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.78));
+}
+.loc-body h3{margin:0;font-size:1.05rem}
+.loc-body p{margin:0;font-size:.85rem;color:rgba(255,255,255,.82)}
