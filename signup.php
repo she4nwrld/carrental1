@@ -104,3 +104,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
         </ul>
       </div>
     <?php } ?>
+
+        <form method="POST" action="signup.php" class="auth-form" novalidate>
+
+      <div class="auth-field">
+        <label for="full_name">Full Name</label>
+        <!-- value gikan sa $old, para dili mag-type balik kung naay sayop -->
+        <input type="text" id="full_name" name="full_name"
+               value="<?= htmlspecialchars($old['full_name'], ENT_QUOTES, 'UTF-8') ?>"
+               placeholder="Juan Dela Cruz" required>
+      </div>
+
+      <div class="auth-field">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email"
+               value="<?= htmlspecialchars($old['email'], ENT_QUOTES, 'UTF-8') ?>"
+               placeholder="juan@example.com" required>
+      </div>
+
+      <div class="auth-field">
+        <label for="phone">Mobile Number</label>
+        <input type="text" id="phone" name="phone"
+               value="<?= htmlspecialchars($old['phone'], ENT_QUOTES, 'UTF-8') ?>"
+               placeholder="09171234567" required>
+      </div>
+
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <!-- walay value dinhi, bawal i-repopulate ang password -->
+        <input type="password" id="password" name="password"
+               placeholder="At least 8 characters" required>
+        <small>Must be 8+ characters with a letter and a number.</small>
+      </div>
+
+      <div class="auth-field">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password"
+               placeholder="Re-type your password" required>
+      </div>
+
+      <button type="submit" class="auth-btn">Create Account</button>
+
+    </form>
+
+    <p class="auth-alt">Already registered? <a href="login.php">Log in instead</a></p>
+
+  </section>
+</main>
+
+</body>
+</html>
