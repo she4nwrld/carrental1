@@ -152,3 +152,55 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
     <a class="bookbtn" href="<?= e($phoneLink) ?>">Book a Car</a>
   </div>
 </header>
+
+<main>
+
+<!-- hero, uban ang white search box -->
+<section class="hero">
+
+  <p class="reviews">
+    <span class="st" aria-hidden="true">★★★★★</span> 4.9/5 · based on 1,989 Google reviews
+  </p>
+
+  <h1>Dumaguete City / Sibulan / Valencia <span>Car Rental.</span></h1>
+
+  <p class="desc">
+    Self-drive rentals across Dumaguete City, Sibulan and Valencia.
+    Pick a unit, give us a call, and we confirm the schedule with you
+    before you pay anything.
+  </p>
+
+  <form class="box" action="index.php" method="get">
+
+    <div class="line">
+      <div class="col">
+        <label for="pickup-location">Pick-up Location</label>
+        <select id="pickup-location" name="pickup_location">
+          <option>Select location</option>
+          <?php foreach ($pickups as $place) { ?>
+            <option><?= e($place) ?></option>
+          <?php } ?>
+        </select>
+      </div>
+      <div class="col">
+        <label for="return-location">Return Location</label>
+        <select id="return-location" name="return_location">
+          <option>Same as pick-up</option>
+          <option>Sibulan Airport</option>
+        </select>
+      </div>
+      <div class="col wide">
+        <label for="pickup-date">Pick-up Date &amp; Time</label>
+        <div class="pair">
+          <input type="date" id="pickup-date" name="pickup_date">
+          <input type="time" name="pickup_time" value="10:00" aria-label="Pick-up time">
+        </div>
+      </div>
+      <div class="col wide">
+        <label for="return-date">Return Date &amp; Time</label>
+        <div class="pair">
+          <input type="date" id="return-date" name="return_date">
+          <input type="time" name="return_time" value="10:00" aria-label="Return time">
+        </div>
+      </div>
+    </div>
