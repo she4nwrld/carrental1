@@ -52,3 +52,32 @@ function emailTaken(PDO $pdo, string $email): bool
     $stmt->execute();
     return $stmt->fetch() !== false;
 }
+
+// mo-check kung tinuod ba nga petsa ug dili na lumabay
+function validateDate(string $value, string $label): ?string {
+    $date = DateTime::createFromFormat('Y-m-d', $value);
+    if (!$date || $date->format('Y-m-d') !== $value) {
+        return "$label must be a valid date.";
+    }
+    if ($date < new DateTime('today')) {
+        return "$label cannot be in the past.";
+    }
+    return null;
+}
+
+// ang return kinahanglan human sa pickup
+function validateDateOrder(string $pickup, string $return): ?string {
+    $from = DateTime::createFromFormat('Y-m-d', $pickup);
+    $to   = DateTime::createFromFormat('Y-m-d', $return);
+    if (!$from || !$to) {
+        return null;  // sayop na sa format, naa nay sariling error
+    }
+    return $to <= $from ? "Return date must be after the pick-up date." : null;
+}
+
+// pila ka adlaw ang rental, gamiton sa total
+function daysBetween(string $pickup, string $return): int {
+    $from = new DateTime($pickup);
+    $to   = new DateTime($return);
+    return (int)$from->diff($to)->days;
+}
