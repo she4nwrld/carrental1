@@ -5,7 +5,7 @@ require 'validation.php';
 
 requireLogin();
 
-/* ang mga file ni handler ra, wala'y HTML output */
+/* handler ra ni nga file, wala'y HTML output */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php');
     exit;
@@ -57,6 +57,55 @@ if ($action === 'create_booking') {
         $_SESSION['booking_errors'] = $errors;
         $_SESSION['booking_old']    = $old;
         header('Location: book.php?car_id=' . (int)$carId);
+        exit;
+    }
+
+    /* i-kuha ang presyo gikan sa database, dili gikan sa form —
+       basin gi-usab sa user ang hidden field sa browser */
+    $stmt = $pdo->prepare("SELECT price FROM cars WHERE id = :id AND available = 1");
+    $stmt->bindValue(':id', $carId, PDO::PARAM_INT);
+    $stmt->execute();
+    $car = $stmt->fetch();
+
+    if (!$car) {
+        $_SESSION['booking_errors'] = ['That vehicle is no longer available.'];
+        header('Location: index.php?missing=1');
+        exit;
+    }
+
+    $days  = daysBetween($pickupDate, $returnDate);
+    $total = ($days * (int)$car['price']) + ($delivery ? 500 : 0);
+
+    try {
+        $sql = "INSERT INTO bookings
+                  (user_id, car_id, pickup_location, return_location,
+                   pickup_date, return_date, driver_age, delivery, days, total)
+                VALUES
+                  (:user_id, :car_id, :pickup_location, :return_location,
+                   :pickup_date, :return_date, :driver_age, :delivery, :days, :total)";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':user_id',         currentUserId(), PDO::PARAM_INT);
+        $stmt->bindValue(':car_id',          $carId,          PDO::PARAM_INT);
+        $stmt->bindValue(':pickup_location', $pickupLocation);
+        $stmt->bindValue(':return_location', $returnLocation);
+        $stmt->bindValue(':pickup_date',     $pickupDate);
+        $stmt->bindValue(':return_date',     $returnDate);
+        $stmt->bindValue(':driver_age',      $driverAge);
+        $stmt->bindValue(':delivery',        $delivery, PDO::PARAM_INT);
+        $stmt->bindValue(':days',            $days,     PDO::PARAM_INT);
+        $stmt->bindValue(':total',           $total,    PDO::PARAM_INT);
+        $stmt->execute();
+
+        $bookingId = (int)$pdo->lastInsertId();
+
+        header('Location: success.php?booking=' . $bookingId);
+        exit;
+
+    } catch (PDOException $e) {
+        $_SESSION['booking_errors'] = ['Could not save your booking. Please try again.'];
+        $_SESSION['booking_old']    = $old;
+        header('Location: book.php?car_id=' . $carId);
         exit;
     }
 }
