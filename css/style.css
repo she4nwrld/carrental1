@@ -121,3 +121,48 @@ h1,h2,h3,p{margin:0 0 .6rem}
   max-width:560px;   /* dili lapad, sayon basahon */
   margin-bottom:26px;
 }
+
+/* ===== SEARCH FORM SA HERO ===== */
+.search{
+  background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:20px;
+}
+.search .line{
+  display:grid;gap:14px;
+  grid-template-columns:repeat(4,minmax(0,1fr));   /* 4 pareho ka columns */
+  margin-bottom:14px;
+}
+.field{
+  display:flex;flex-direction:column;gap:6px;   /* label sa taas, input sa ubos */
+  min-width:0;   /* para dili mo-overflow sulod sa grid */
+}
+.field label{
+  font-size:.74rem;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);
+}
+.field select,.field input{
+  width:100%;padding:11px 12px;
+  border:1px solid var(--line);border-radius:10px;
+  background:var(--soft);
+  transition:border-color .2s,background .2s;
+}
+.field select:focus,.field input:focus{
+  outline:none;   /* tangtangon default ring, ilisan ta ug blue border */
+  border-color:var(--brand);background:#fff;
+}
+.search .bottom{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;
+  padding-top:6px;border-top:1px solid var(--line);
+}
+.check{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--muted)}
+.check input{width:16px;height:16px;accent-color:var(--brand)}  /* blue kung naka-check */
+.btn-find{
+  padding:12px 30px;border:0;border-radius:999px;cursor:pointer;
+  background:var(--brand);color:#fff;font-weight:600;
+  transition:background .2s;
+}
+.btn-find:hover{background:var(--brand-dark)}
+.manage{font-size:.88rem;color:var(--brand);font-weight:500}
