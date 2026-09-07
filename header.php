@@ -26,7 +26,7 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 </head>
 
 <body>
-    
+
 <header class="topbar">
   <div class="brand">
     <a href="index.php">
@@ -44,6 +44,8 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
     <a href="index.php#locations">Locations</a>
     <a href="index.php#promo">Deals</a>
     <a href="index.php#reviews">Reviews</a>
+    <a href="#">FAQs</a>
+    <a href="#">Contact Us</a>
   </nav>
 
   <div class="right">
