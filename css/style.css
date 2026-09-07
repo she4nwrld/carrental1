@@ -941,3 +941,65 @@ html { scroll-behavior: smooth; }
   .footer-locations { flex: 1 1 100%; }
   .footer-locations p { max-width: none; }
 }
+
+/* phones */
+@media (max-width: 640px) {
+  .hero { padding: 34px var(--side); }
+  .hero h1 { font-size: 34px; }
+  .hero .desc { max-width: none; }
+
+  .box { padding: 18px; }
+  .col, .col.wide { flex: 1 1 100%; margin-right: 0; }
+  .line .col:nth-child(odd) { margin-right: 0; }
+  .bottom { display: block; }
+  .bottom div { margin-bottom: 8px; }
+
+  .vehicles { padding: 44px var(--side) 52px; }
+  .vehicles-title { font-size: 26px; }
+
+  /* usa ra ka card kada page, slider gihapon dili stack */
+  .carousel { gap: 8px; }
+  .car, .rv { flex: 0 0 100%; }
+  .arrow { flex: 0 0 34px; width: 34px; height: 34px; line-height: 32px; font-size: 14px; }
+
+  /* mas lapad nga ratio dinhi kung dili mo-tag-as kaayo ang photo sa full width card */
+  .car-photo { aspect-ratio: 16 / 9; }
+
+  /* usa ka column sa specs, ang duha gasikit kaayo sa gamay nga card */
+  .car-specs { grid-template-columns: 1fr; gap: 9px; }
+  .car-specs span:last-child:nth-child(odd) { grid-column: auto; }
+
+  .controls { margin-top: 22px; }
+
+  .promo { padding: 40px var(--side); }
+  .promo-text { padding: 28px 22px 32px; }
+  .promo-title { font-size: 24px; }
+  .promo-desc { font-size: 12.5px; }
+  .promo-photo { height: 180px; }
+
+  .locations { padding: 44px var(--side) 52px; }
+  .reviews-sec { padding: 44px var(--side) 44px; }
+  .sec-head { margin-bottom: 28px; }
+  .sec-head h2 { font-size: 26px; }
+  .rv-big { font-size: 30px; }
+
+  /* ang tag-as nga cards mo-stack ug mo-lapad para dili mogawas sa screen */
+  .loc-grid { display: block; }
+  .loc { aspect-ratio: 4 / 3; margin-bottom: 18px; }
+  .loc:last-child { margin-bottom: 0; }
+
+  .rv-text { font-size: 13px; }
+  .rv-more { font-size: 17px; margin-top: 30px; }
+
+  .footer { padding: 36px var(--side) 20px; }
+  .footer-top { display: block; padding-bottom: 26px; }
+  .footer-col { margin-top: 26px; }
+  .footer-bottom { display: block; }
+  .footer-mark { margin-top: 14px; }
+}
+
+/* walay sliding animation kung ang visitor nag-request sa system nga i-cut ang motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .slide-row { transition: none; }
+}
