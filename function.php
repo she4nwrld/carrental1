@@ -109,3 +109,38 @@ if ($action === 'create_booking') {
         exit;
     }
 }
+
+/* ---------- pag-cancel sa booking sa customer ---------- */
+if ($action === 'cancel_booking') {
+
+    $bookingId = filter_input(INPUT_POST, 'booking_id', FILTER_VALIDATE_INT);
+
+    if (!$bookingId) {
+        header('Location: bookings.php?notfound=1');
+        exit;
+    }
+
+    /* ang user_id ug status naa sa WHERE — mao ni ang tinuod nga guard.
+       dili igo ang pagtago sa button sa bookings.php */
+    $sql = "UPDATE bookings
+            SET status = 'cancelled'
+            WHERE id = :id AND user_id = :user_id AND status = 'pending'";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':id', $bookingId, PDO::PARAM_INT);
+    $stmt->bindValue(':user_id', currentUserId(), PDO::PARAM_INT);
+    $stmt->execute();
+
+    /* kung walay narow nga na-update, dili iya ni o dili na pending */
+    if ($stmt->rowCount() === 0) {
+        header('Location: bookings.php?notfound=1');
+        exit;
+    }
+
+    header('Location: bookings.php?cancelled=1');
+    exit;
+}
+
+/* wala mailhan nga action */
+header('Location: index.php');
+exit;
