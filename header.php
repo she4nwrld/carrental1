@@ -26,3 +26,43 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 </head>
 
 <body>
+    
+<header class="topbar">
+  <div class="brand">
+    <a href="index.php">
+      <?php if ($hasLogo) { ?>
+        <img src="<?= e($logo) ?>" alt="Shift Car Rental">
+      <?php } else { ?>
+        <span class="wordmark">SHI<span>F</span>T</span>
+      <?php } ?>
+    </a>
+  </div>
+
+  <nav class="menu" aria-label="Main navigation">
+    <a href="index.php">Home</a>
+    <a href="index.php#our-vehicles">Vehicles</a>
+    <a href="index.php#locations">Locations</a>
+    <a href="index.php#promo">Deals</a>
+    <a href="index.php#reviews">Reviews</a>
+  </nav>
+
+  <div class="right">
+    <?php if (isLoggedIn()) { ?>
+
+      <!-- naka-login: ngalan, mga booking, ug logout -->
+      <?php if (isAdmin()) { ?>
+        <a href="admin/dashboard.php">Dashboard</a>
+      <?php } ?>
+      <a href="bookings.php">My Bookings</a>
+      <span class="greet">Hi, <?= e(currentUserName()) ?></span>
+      <a class="bookbtn" href="logout.php">Log Out</a>
+
+    <?php } else { ?>
+
+      <!-- bisita: login ug signup ra -->
+      <a href="login.php">Log In</a>
+      <a class="bookbtn" href="signup.php">Sign Up</a>
+
+    <?php } ?>
+  </div>
+</header>
