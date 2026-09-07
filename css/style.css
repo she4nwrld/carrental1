@@ -949,7 +949,7 @@ html { scroll-behavior: smooth; }
   display: grid;
   place-items: center;
   padding: 40px 5%;
-  background: #f6f7f9;
+  background: #fff;
 }
 
 .auth-card {
@@ -2211,6 +2211,7 @@ html {
 .auth-main {
   padding: 2rem 1rem;
   min-height: auto;
+  background: #fff;
 }
 
 .auth-card {
@@ -2324,4 +2325,32 @@ html {
   .contact-wrap {
     grid-template-columns: 1fr;
   }
+}
+
+/* book page: cap spec icon size */
+.book-photo svg,
+.book-photo img.icon,
+.book-specs svg,
+.book-specs img {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  vertical-align: middle;
+}
+
+.book-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.book-specs li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
 }

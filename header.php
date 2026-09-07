@@ -66,8 +66,8 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 
     <?php } else { ?>
 
-      <!-- bisita: My Booking ug Book Now -->
-      <a href="<?= e($base) ?>bookings.php">My Booking</a>
+      <!-- bisita: My Booking ug Book Now — ang data-auth mao ang nag-trigger sa modal -->
+      <a href="<?= e($base) ?>bookings.php" data-auth="1">My Booking</a>
       <a class="bookbtn" href="#" id="booknow-btn">Book Now</a>
 
     <?php } ?>
@@ -100,19 +100,26 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
       loginLink.setAttribute('href', base + '?next=' + encodeURIComponent(nextUrl));
     }
     modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
   }
 
   var btn = document.getElementById('booknow-btn');
   if (btn) btn.addEventListener('click', function (e) { openModal(e); });
 
-  /* guest presses Book Now on a car card: show the modal instead of the login page */
+  /* guest presses Book Now on a car card, o My Booking sa header: modal ang mogawas */
   document.addEventListener('click', function (e) {
-    var link = e.target.closest ? e.target.closest('a.book') : null;
+    var link = e.target.closest ? e.target.closest('a.book, a[data-auth]') : null;
     if (link) openModal(e, link.getAttribute('href'));
   });
-  document.getElementById('auth-modal-close').addEventListener('click', function () { modal.hidden = true; });
-  modal.addEventListener('click', function (e) { if (e.target === modal) modal.hidden = true; });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.hidden = true; });
+
+  document.getElementById('auth-modal-close').addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 })();
 </script>
 <?php } ?>
