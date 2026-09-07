@@ -36,6 +36,10 @@ function validatePassword(string $value): ?string
     if (!preg_match('/[A-Za-z]/', $value) || !preg_match('/\d/', $value)) {
         return "Password must contain both a letter and a number.";
     }
+    // dapat naay bisan usa ka special character (dili letra o numero)
+    if (!preg_match('/[^A-Za-z0-9]/', $value)) {
+        return "Password must contain at least 1 special character (e.g. ! @ # $ %).";
+    }
     return null;
 }
 

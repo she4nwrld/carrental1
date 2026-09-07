@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
         <!-- walay value dinhi, bawal i-repopulate ang password -->
         <input type="password" id="password" name="password"
                placeholder="At least 8 characters" required>
-        <small>Must be 8+ characters with a letter and a number.</small>
+        <small>Must be 8+ characters with a letter, a number and a special character (e.g. ! @ # $).</small>
       </div>
 
       <div class="auth-field">

@@ -65,10 +65,36 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 
     <?php } else { ?>
 
-      <!-- bisita: login ug signup ra -->
-      <a href="<?= e($base) ?>login.php">Log In</a>
-      <a class="bookbtn" href="<?= e($base) ?>signup.php">Sign Up</a>
+      <!-- bisita: My Booking ug Book Now -->
+      <a href="<?= e($base) ?>bookings.php">My Booking</a>
+      <a class="bookbtn" href="#" id="booknow-btn">Book Now</a>
 
     <?php } ?>
   </div>
 </header>
+
+<?php if (!isLoggedIn()) { ?>
+<!-- modal: mo-gawas kung guest mo-click sa Book Now — kinahanglan mag-login o mag-create account una -->
+<div class="auth-modal" id="auth-modal" hidden>
+  <div class="auth-modal-box" role="dialog" aria-labelledby="auth-modal-title">
+    <button type="button" class="auth-modal-close" id="auth-modal-close" aria-label="Close">&times;</button>
+    <h3 id="auth-modal-title">Ready to book?</h3>
+    <p>You need an account to book a vehicle. Log in or create one — it only takes a minute.</p>
+    <div class="auth-modal-actions">
+      <a class="am-btn" href="<?= e($base) ?>login.php?next=<?= urlencode($base ? '../vehicles.php' : 'vehicles.php') ?>">Log In</a>
+      <a class="am-btn am-ghost" href="<?= e($base) ?>signup.php">Create Account</a>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var btn   = document.getElementById('booknow-btn');
+  var modal = document.getElementById('auth-modal');
+  if (!btn || !modal) return;
+  btn.addEventListener('click', function (e) { e.preventDefault(); modal.hidden = false; });
+  document.getElementById('auth-modal-close').addEventListener('click', function () { modal.hidden = true; });
+  modal.addEventListener('click', function (e) { if (e.target === modal) modal.hidden = true; });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.hidden = true; });
+})();
+</script>
+<?php } ?>

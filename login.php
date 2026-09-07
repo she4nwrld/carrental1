@@ -13,6 +13,13 @@ if (isset($_SESSION['user_id'])) {
 $errors = [];
 $old    = ['email' => ''];
 
+// gikan sa requireLogin() o sa Book Now modal — asa mo-balik human sa login
+// gidawat ra ang relative path para walay open-redirect
+$next = $_GET['next'] ?? $_POST['next'] ?? '';
+if ($next !== '' && (str_contains($next, '//') || $next[0] === '/' && ($next[1] ?? '') === '/' || preg_match('/^[a-z]+:/i', $next))) {
+    $next = '';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -43,8 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_name'] = $user['full_name'];
             $_SESSION['role']      = $user['role'];
 
-            // admin paingon sa dashboard, customer paingon sa home
-            $target = $user['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php';
+            // admin paingon sa dashboard, customer paingon sa next (kung naa) o sa home
+            if ($user['role'] === 'admin') {
+                $target = 'admin/dashboard.php';
+            } else {
+                $target = $next !== '' ? $next : 'index.php';
+            }
             header('Location: ' . $target);
             exit;
         }
@@ -95,6 +106,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php } ?>
 
     <form method="POST" action="login.php" class="auth-form" novalidate>
+
+      <?php if ($next !== '') { ?>
+        <input type="hidden" name="next" value="<?= htmlspecialchars($next, ENT_QUOTES, 'UTF-8') ?>">
+      <?php } ?>
 
       <div class="auth-field">
         <label for="email">Email Address</label>

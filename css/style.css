@@ -2138,3 +2138,48 @@ html { scroll-behavior: smooth; }
   .review-form-card, .review-gate { padding: 22px 20px; }
   .star-pick label { font-size: 28px; }
 }
+
+/* ===== book-now auth modal ===== */
+.auth-modal {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(19, 26, 44, .62);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.auth-modal[hidden] { display: none; }
+.auth-modal-box {
+  position: relative;
+  background: #fff; border-radius: 16px;
+  padding: 34px 30px 30px;
+  max-width: 400px; width: 100%;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .30);
+}
+.auth-modal-box h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 22px; font-weight: 700; color: #131A2C;
+  margin: 0 0 8px;
+}
+.auth-modal-box p {
+  font-size: 14px; color: #5B6472; line-height: 1.6;
+  margin: 0 0 20px;
+}
+.auth-modal-actions { display: flex; gap: 10px; justify-content: center; }
+.am-btn {
+  display: inline-block; padding: 11px 22px;
+  border-radius: 10px; font-weight: 600; font-size: 14px;
+  background: #FEB802; color: #131A2C; text-decoration: none;
+  transition: background .15s ease;
+}
+.am-btn:hover { background: #E5A600; }
+.am-btn.am-ghost {
+  background: #fff; color: #131A2C;
+  border: 2px solid #131A2C;
+}
+.am-btn.am-ghost:hover { background: #131A2C; color: #fff; }
+.auth-modal-close {
+  position: absolute; top: 10px; right: 14px;
+  background: none; border: 0; cursor: pointer;
+  font-size: 26px; line-height: 1; color: #9AA1AC;
+}
+.auth-modal-close:hover { color: #131A2C; }
