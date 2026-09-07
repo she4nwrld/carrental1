@@ -786,3 +786,102 @@ html { scroll-behavior: smooth; }
   text-transform: uppercase;
 }
 .rv-more span { color: #FEB802; }
+
+/* footer */
+.footer {
+  background: #131A2C;
+  color: #A8B0BF;
+  padding: 46px var(--side) 22px;
+  font-size: 13px;
+}
+
+.footer-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
+  padding-bottom: 34px;
+}
+
+.footer-brand { flex: 0 0 210px; }
+
+.footer-brand img { width: 130px; display: block; }
+
+.footer-tag {
+  margin: 8px 0 0;
+  color: #A8B0BF;
+  font-family: "Poppins", sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.footer-social {
+  display: flex;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.footer-social a {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #FEB802;
+  color: #131A2C;
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 30px;
+}
+.footer-social a:hover { background: #E5A600; }
+
+.footer-col { flex: 1 1 0; min-width: 0; }
+
+.footer-col h2 {
+  margin: 0 0 16px;
+  color: white;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.footer-col li { margin-bottom: 11px; }
+
+.footer-col a { color: #A8B0BF; }
+.footer-col a:hover { color: #FEB802; }
+
+/* ang locations column mas lapad sa mga link columns */
+.footer-locations { flex: 1.5 1 0; }
+
+.footer-locations p {
+  margin: 0 0 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  max-width: 260px;
+}
+
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  padding-top: 20px;
+  border-top: 1px solid #2A3346;
+}
+
+.footer-bottom p {
+  margin: 0;
+  font-size: 12px;
+  color: #7C8595;
+}
+
+.footer-mark { width: 26px; display: block; }
