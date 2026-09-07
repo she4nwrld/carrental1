@@ -39,3 +39,76 @@ function reference(int $id): string {
 $pageTitle = 'My Bookings — Shift Car Rental';
 require 'header.php';
 ?>
+
+<main class="book-main">
+  <section class="list-wrap">
+
+    <div class="list-head">
+      <h1>My bookings</h1>
+      <p class="book-sub">All your reservations, newest first.</p>
+    </div>
+
+    <?php if ($flash !== '') { ?>
+      <div class="flash" role="status"><?= e($flash) ?></div>
+    <?php } ?>
+
+    <?php if (count($bookings) === 0) { ?>
+
+      <div class="list-empty">
+        <p>You have no bookings yet.</p>
+        <a class="auth-btn" href="index.php#our-vehicles">Browse our vehicles</a>
+      </div>
+
+    <?php } else { ?>
+
+      <?php foreach ($bookings as $bk) { ?>
+
+        <article class="bk-card">
+
+          <div class="bk-photo">
+            <img src="<?= e($bk['car_img']) ?>" alt="<?= e($bk['car_name']) ?>" loading="lazy">
+          </div>
+
+          <div class="bk-body">
+
+            <div class="bk-top">
+              <div>
+                <h2><?= e($bk['car_name']) ?></h2>
+                <p class="bk-ref"><?= e(reference((int)$bk['id'])) ?> &middot; <?= e($bk['car_type']) ?></p>
+              </div>
+              <span class="pill pill-<?= e($bk['status']) ?>"><?= e(ucfirst($bk['status'])) ?></span>
+            </div>
+
+            <div class="bk-grid">
+              <div><span>Pick-up</span><strong><?= e(niceDate($bk['pickup_date'])) ?></strong><em><?= e($bk['pickup_location']) ?></em></div>
+              <div><span>Return</span><strong><?= e(niceDate($bk['return_date'])) ?></strong><em><?= e($bk['return_location']) ?></em></div>
+              <div><span>Duration</span><strong><?= e($bk['days']) ?> <?= $bk['days'] == 1 ? 'day' : 'days' ?></strong><em><?= $bk['delivery'] ? 'With delivery' : 'Self pick-up' ?></em></div>
+              <div><span>Total</span><strong>&#8369;<?= e(number_format($bk['total'])) ?></strong><em>Due on pick-up</em></div>
+            </div>
+
+            <div class="bk-foot">
+              <p class="bk-made">Booked <?= e(date('M j, Y', strtotime($bk['created_at']))) ?></p>
+
+              <?php if ($bk['status'] === 'pending') { ?>
+                <!-- pending pa ra ang ma-cancel sa customer -->
+                <form method="POST" action="function.php" class="bk-cancel"
+                      onsubmit="return confirm('Cancel this booking?');">
+                  <input type="hidden" name="action" value="cancel_booking">
+                  <input type="hidden" name="booking_id" value="<?= e($bk['id']) ?>">
+                  <button type="submit" class="bk-cancel-btn">Cancel booking</button>
+                </form>
+              <?php } ?>
+            </div>
+
+          </div>
+
+        </article>
+
+      <?php } ?>
+
+    <?php } ?>
+
+  </section>
+</main>
+
+<?php require 'footer.php'; ?>
