@@ -42,4 +42,22 @@ $cars = [
    'gear' => 'Manual', 'seats' => 8, 'doors' => 5, 'bagL' => 3, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
    'img' => 'images/toyota-innova.png'],
 ];
+// icon shapes para sa spec rows, gibutang diri para mubo ra ang card markup
+$specIcons = [
+  'passenger' => '<circle cx="12" cy="7.4" r="3.2"/><path d="M5.6 20a6.4 6.4 0 0 1 12.8 0"/>',
+  'kids'      => '<circle cx="12" cy="5.6" r="2.3"/><path d="M12 7.9v5.4"/><path d="M8.6 10.4h6.8"/><path d="M9.9 20l2.1-6.7 2.1 6.7"/>',
+  'doors'     => '<path d="M6.5 4h8.2a3 3 0 0 1 3 3v13H6.5z"/><path d="M9.4 12.4h2.6"/>',
+  'aircon'    => '<path d="M4 7.6h8.4a2.8 2.8 0 1 0-2.8-2.8"/><path d="M4 12h13.4"/><path d="M4 16.4h8.4a2.8 2.8 0 1 1-2.8 2.8"/>',
+  'bagL'      => '<rect x="4.6" y="7.8" width="14.8" height="12.2" rx="2.2"/><path d="M9.2 7.8V5.4A1.4 1.4 0 0 1 10.6 4h2.8a1.4 1.4 0 0 1 1.4 1.4v2.4"/><path d="M12 11.4v5"/>',
+  'bagS'      => '<rect x="6.6" y="9.4" width="10.8" height="10.6" rx="2"/><path d="M10.1 9.4V7.3a1.4 1.4 0 0 1 1.4-1.4h1a1.4 1.4 0 0 1 1.4 1.4v2.1"/>',
+  'gear'      => '<circle cx="12" cy="12" r="8.4"/><path d="M12 12l3.4-3"/><path d="M12 3.6v2"/>',
+];
+
+// gi-wrap ang usa ka shape sa svg para kausa ra ni nako gisulat
+function spec($icons, $key, $text) {
+  if (!isset($icons[$key])) return '';
+  return '<span><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+       . 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' . $icons[$key] . '</svg></span>'
+       . '<span class="txt">' . e($text) . '</span></span>';
+}
 
