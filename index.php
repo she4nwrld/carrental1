@@ -214,6 +214,8 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
         <select id="return-location" name="return_location">
           <option>Same as pick-up</option>
           <option>Sibulan Airport</option>
+          <option>Rizal Boulevard</option>
+          <option>Valencia</option>
         </select>
       </div>
       <div class="col wide">
