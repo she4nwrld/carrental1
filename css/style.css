@@ -1247,3 +1247,169 @@ html { scroll-behavior: smooth; }
     gap: 0;
   }
 }
+
+/* ===== success page ===== */
+.success-card {
+  max-width: 620px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 18px;
+  padding: 36px 32px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .08);
+  text-align: center;
+}
+
+/* ang berde nga tsek sa taas */
+.success-badge {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 28px;
+  line-height: 56px;
+  font-weight: 700;
+}
+
+.success-card h1 {
+  font-family: Poppins, sans-serif;
+  font-size: 26px;
+  margin: 0 0 6px;
+}
+
+/* kahon sa car sa taas sa detalye */
+.success-car {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+  margin: 22px 0 18px;
+}
+
+.success-photo {
+  width: 120px;
+  flex: 0 0 120px;
+  aspect-ratio: 4/3;
+  background: #eef0f3;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+}
+
+.success-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.success-car h2 {
+  font-family: Poppins, sans-serif;
+  font-size: 18px;
+  margin: 0 0 2px;
+}
+
+/* lista sa detalye: label sa wala, value sa tuo */
+.success-list {
+  margin: 0 0 18px;
+  padding: 0;
+  text-align: left;
+}
+
+.success-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.success-list > div:last-child {
+  border-bottom: 0;
+}
+
+.success-list dt {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.success-list dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  text-align: right;
+}
+
+.success-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.success-actions .auth-btn {
+  display: block;
+  text-decoration: none;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ===== status pills: gamiton pud sa bookings.php ug sa admin ===== */
+.pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+.pill-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pill-confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pill-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.pill-completed {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+@media (max-width: 560px) {
+  .success-car {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .success-photo {
+    width: 100%;
+    flex: none;
+  }
+
+  .success-list > div {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .success-list dd {
+    text-align: left;
+  }
+}
