@@ -655,3 +655,134 @@ html { scroll-behavior: smooth; }
   font-size: 13px;
   line-height: 1.6;
 }
+
+/* recent reviews */
+.reviews-sec {
+  background: white;
+  padding: 64px var(--side) 52px;
+}
+
+/* dako nga score line sa ilawom sa heading */
+.rv-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin-top: 14px;
+}
+
+.rv-big {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 36px;
+  line-height: 1;
+  color: #FEB802;
+}
+
+.rv-rating .rv-stars {
+  margin: 0;
+  color: #FEB802;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.rv-count { color: #7C8595; font-size: 13px; }
+
+/* review card, parehas nga page math sa car card */
+.rv {
+  flex: 0 0 calc((100% - (var(--gap) * 2)) / 3);
+  min-width: 0;
+  background: white;
+  border: 1px solid #E6E8EC;
+  border-radius: 14px;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 18px rgba(19, 26, 44, .05);
+}
+
+/* ang name row naa sa taas sa card */
+.rv-who {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+/* initial sulod sa bilog, wala pa profile photos para niini */
+.rv-initial {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #131A2C;
+  color: #FEB802;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  line-height: 34px;
+}
+
+.rv-name { flex: 1 1 auto; min-width: 0; }
+
+.rv-name h3 {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+/* gamay nga verified tick tapad sa ngalan */
+.rv-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  margin-left: 5px;
+  border-radius: 50%;
+  background: #FEB802;
+  color: #131A2C;
+  font-size: 8px;
+  line-height: 1;
+  vertical-align: 1px;
+}
+
+.rv-name p {
+  margin: 3px 0 0;
+  color: #7C8595;
+  font-size: 11.5px;
+}
+
+/* tinuod nga google mark, dili letra sulod sa ring */
+.rv-g { flex: 0 0 18px; display: flex; }
+.rv-g svg { width: 18px; height: 18px; min-width: 18px; display: block; }
+
+.rv-stars {
+  margin: 16px 0 0;
+  color: #FEB802;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.rv-text {
+  margin: 10px 0 0;
+  color: #434B4E;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+/* closing line, plain text na so walay anchor styles dinhi */
+.rv-more {
+  text-align: center;
+  margin: 44px 0 0;
+  color: #131A2C;
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 23px;
+  letter-spacing: -0.2px;
+  text-transform: uppercase;
+}
+.rv-more span { color: #FEB802; }
