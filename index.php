@@ -50,6 +50,13 @@ $cars = [
   ['name' => 'Toyota Vios',              'type' => 'Sedan',     'price' => 2200,
    'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 1, 'kids' => 2, 'aircon' => true,
    'img' => 'images/toyota-vios.png'],
+     ['name' => 'Ford Everest',             'type' => 'SUV',       'price' => 5500,
+   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
+   'img' => 'images/ford-everest.png'],
+
+  ['name' => 'Mitsubishi Montero Sport', 'type' => 'SUV',       'price' => 5000,
+   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
+   'img' => 'images/mitsubishi-montero.png'],
 
 ];
 
