@@ -13,4 +13,33 @@ function googleMark() {
     . '<path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C37.8 39.2 44 34.5 44 24c0-1.3-.1-2.6-.4-3.9z"/>'
     . '</svg>';
 }
+// diri nagpuyo ang car list ug ang mga dropdown options
+$categories = ['All', 'Hatchback', 'Sedan', 'SUV', 'MPV'];
+
+// unom ka units, para even ang desktop page nga tulo
+$cars = [
+  ['name' => 'Kia Picanto',          'type' => 'Hatchback', 'price' => 1800,
+   'gear' => 'Auto',   'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 2, 'kids' => 1, 'aircon' => true,
+   'img' => 'images/kia-picanto.png'],
+
+  ['name' => 'Suzuki Swift',         'type' => 'Hatchback', 'price' => 2000,
+   'gear' => 'Auto',   'seats' => 5, 'doors' => 5, 'bagL' => 1, 'bagS' => 2, 'kids' => 1, 'aircon' => true,
+   'img' => 'images/suzuki-swift.png'],
+
+  ['name' => 'Toyota Corolla Altis', 'type' => 'Sedan',     'price' => 2800,
+   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
+   'img' => 'images/toyota-corolla-altis.png'],
+
+  ['name' => 'Honda City',           'type' => 'Sedan',     'price' => 2500,
+   'gear' => 'Auto',   'seats' => 5, 'doors' => 4, 'bagL' => 2, 'bagS' => 1, 'kids' => 2, 'aircon' => true,
+   'img' => 'images/honda-city.png'],
+
+  ['name' => 'Toyota Fortuner',      'type' => 'SUV',       'price' => 4500,
+   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
+   'img' => 'images/toyota-fortuner.png'],
+
+  ['name' => 'Toyota Innova',        'type' => 'MPV',       'price' => 3500,
+   'gear' => 'Manual', 'seats' => 8, 'doors' => 5, 'bagL' => 3, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
+   'img' => 'images/toyota-innova.png'],
+];
 
