@@ -373,3 +373,65 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
   </div>
 
 </section>
+
+<!-- bag-ong reviews, pareho ra ang slider parts sa vehicles sa ibabaw -->
+<section class="reviews-sec" id="reviews">
+
+  <div class="sec-head">
+    <h2>Recent <span>Reviews</span></h2>
+
+    <div class="rv-rating">
+      <span class="rv-big">4.9</span>
+      <span class="rv-stars" aria-label="4.9 out of 5 stars"><span aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span></span>
+      <span class="rv-count">from 1,989 Google reviews</span>
+    </div>
+  </div>
+
+  <div class="carousel" id="rvCarousel" aria-roledescription="carousel" aria-label="Recent reviews">
+
+    <button class="arrow" type="button" data-dir="prev" aria-label="Previous reviews">&#8592;</button>
+
+    <div class="slide-view">
+      <div class="slide-row" id="rvRow">
+        <?php foreach ($feedback as $note) { ?>
+
+          <article class="rv">
+
+            <div class="rv-who">
+              <!-- unang letra sa ngalan ang gipuli sa profile photo -->
+              <span class="rv-initial" aria-hidden="true"><?= e(strtoupper(substr($note['name'], 0, 1))) ?></span>
+
+              <div class="rv-name">
+                <h3><?= e($note['name']) ?><span class="rv-check" title="Verified renter">&#10003;</span></h3>
+                <p><?= e($note['role']) ?> &middot; <?= e($note['when']) ?></p>
+              </div>
+
+              <span class="rv-g" role="img" aria-label="Google review"><?= googleMark() ?></span>
+            </div>
+
+            <p class="rv-stars" aria-label="5 out of 5 stars">
+              <span aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            </p>
+
+            <p class="rv-text">&ldquo;<?= e($note['text']) ?>&rdquo;</p>
+
+          </article>
+
+        <?php } ?>
+      </div>
+    </div>
+
+    <button class="arrow" type="button" data-dir="next" aria-label="Next reviews">&#8594;</button>
+
+  </div>
+
+  <div class="controls" id="rvControls">
+    <div class="dots" id="rvDots" aria-hidden="true"></div>
+  </div>
+
+  <!-- plain text ra, walay link paingon sa maps -->
+  <p class="rv-more">&amp; 1,900+ more <span>Google reviews</span></p>
+
+</section>
+
+</main>
