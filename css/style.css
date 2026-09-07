@@ -316,3 +316,46 @@ section{padding:66px 0}
 }
 .loc-body h3{margin:0;font-size:1.05rem}
 .loc-body p{margin:0;font-size:.85rem;color:rgba(255,255,255,.82)}
+
+/* ===== REVIEWS ===== */
+.reviews{background:var(--soft)}
+.rating-line{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-size:.94rem;color:var(--muted);margin-bottom:24px;
+}
+.rating-line b{font-size:1.5rem;color:var(--ink)}
+.stars{color:var(--star);letter-spacing:2px}
+.review{
+  width:330px;   /* fixed width para sa carousel */
+  background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius);padding:22px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.review-head{display:flex;align-items:center;gap:12px}
+.review-head .who{flex:1;min-width:0}   /* mo-kuha sa nahibiling space */
+.review-head b{display:block;font-size:.95rem}
+.review-head span{font-size:.78rem;color:var(--muted)}
+.review-head svg{width:20px;height:20px;flex:0 0 auto}  /* google mark */
+.review-text{font-size:.9rem;color:var(--muted);margin:0}
+.more-reviews{display:block;text-align:center;margin-top:20px;font-size:.9rem;color:var(--muted)}
+
+/* ===== FOOTER ===== */
+.site-footer{background:var(--ink);color:rgba(255,255,255,.72);padding:56px 0 24px}
+.site-footer .cols{
+  display:grid;gap:32px;
+  grid-template-columns:1.4fr 1fr 1fr 1fr;   /* brand column mas lapad */
+}
+.site-footer h4{
+  color:#fff;font-size:.82rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;
+}
+.site-footer img{height:40px;width:auto;margin-bottom:12px}
+.site-footer ul{padding:0;margin:0}
+.site-footer li{list-style:none;margin-bottom:8px;font-size:.9rem}  /* tangtangon bullets */
+.site-footer a:hover{color:#fff}
+.foot-bottom{
+  margin-top:38px;padding-top:18px;
+  border-top:1px solid rgba(255,255,255,.12);
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  font-size:.82rem;
+}
