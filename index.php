@@ -58,6 +58,14 @@ $cars = [
    'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 2, 'aircon' => true,
    'img' => 'images/mitsubishi-montero.png'],
 
+  ['name' => 'Toyota Avanza',            'type' => 'MPV',       'price' => 2800,
+   'gear' => 'Manual', 'seats' => 7, 'doors' => 5, 'bagL' => 2, 'bagS' => 3, 'kids' => 3, 'aircon' => true,
+   'img' => 'images/toyota-avanza.png'],
+
+  ['name' => 'Mitsubishi Xpander',       'type' => 'MPV',       'price' => 3000,
+   'gear' => 'Auto',   'seats' => 7, 'doors' => 5, 'bagL' => 3, 'bagS' => 2, 'kids' => 3, 'aircon' => true,
+   'img' => 'images/mitsubishi-xpander.png'],
+
 ];
 
 
