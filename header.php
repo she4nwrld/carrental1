@@ -6,6 +6,10 @@ require_once __DIR__ . '/helpers.php';
 // ang page mo-set niini una sa require, kung dili default ra ang gamiton
 $pageTitle = $pageTitle ?? 'Shift Car Rental — Dumaguete City, Sibulan & Valencia';
 
+// kung ang page naa sa sulod sa admin/ folder, mo-set siya ug $base = '../'
+// para dili mabuak ang path sa css, images ug mga link
+$base = $base ?? '';
+
 $logo    = 'images/shift-logo.png';
 $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
@@ -22,16 +26,16 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?= e($cssFile) ?>?v=<?= e($cssVersion) ?>">
+<link rel="stylesheet" href="<?= e($base . $cssFile) ?>?v=<?= e($cssVersion) ?>">
 </head>
 
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <a href="index.php">
+    <a href="<?= e($base) ?>index.php">
       <?php if ($hasLogo) { ?>
-        <img src="<?= e($logo) ?>" alt="Shift Car Rental">
+        <img src="<?= e($base . $logo) ?>" alt="Shift Car Rental">
       <?php } else { ?>
         <span class="wordmark">SHI<span>F</span>T</span>
       <?php } ?>
@@ -39,11 +43,11 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
   </div>
 
   <nav class="menu" aria-label="Main navigation">
-    <a href="index.php">Home</a>
-    <a href="index.php#our-vehicles">Vehicles</a>
-    <a href="index.php#locations">Locations</a>
-    <a href="index.php#promo">Deals</a>
-    <a href="index.php#reviews">Reviews</a>
+    <a href="<?= e($base) ?>index.php">Home</a>
+    <a href="<?= e($base) ?>index.php#our-vehicles">Vehicles</a>
+    <a href="<?= e($base) ?>index.php#locations">Locations</a>
+    <a href="<?= e($base) ?>index.php#promo">Deals</a>
+    <a href="<?= e($base) ?>index.php#reviews">Reviews</a>
     <a href="#">FAQs</a>
     <a href="#">Contact Us</a>
   </nav>
@@ -53,17 +57,17 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 
       <!-- naka-login: ngalan, mga booking, ug logout -->
       <?php if (isAdmin()) { ?>
-        <a href="admin/dashboard.php">Dashboard</a>
+        <a href="<?= e($base) ?>admin/dashboard.php">Dashboard</a>
       <?php } ?>
-      <a href="bookings.php">My Bookings</a>
+      <a href="<?= e($base) ?>bookings.php">My Bookings</a>
       <span class="greet">Hi, <?= e(currentUserName()) ?></span>
-      <a class="bookbtn" href="logout.php">Log Out</a>
+      <a class="bookbtn" href="<?= e($base) ?>logout.php">Log Out</a>
 
     <?php } else { ?>
 
       <!-- bisita: login ug signup ra -->
-      <a href="login.php">Log In</a>
-      <a class="bookbtn" href="signup.php">Sign Up</a>
+      <a href="<?= e($base) ?>login.php">Log In</a>
+      <a class="bookbtn" href="<?= e($base) ?>signup.php">Sign Up</a>
 
     <?php } ?>
   </div>
