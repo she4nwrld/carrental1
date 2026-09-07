@@ -111,3 +111,18 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 $logo = 'images/shift-logo.png';
 $hasLogo = file_exists(__DIR__ . '/' . $logo);
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shift Car Rental — Dumaguete City, Sibulan &amp; Valencia</title>
+<meta name="description" content="Self-drive car rental in Dumaguete City, Sibulan and Valencia. Browse the fleet and call us to lock in your dates.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="<?= e($cssFile) ?>?v=<?= e($cssVersion) ?>">
+</head>
+
+<body>
