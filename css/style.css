@@ -166,3 +166,38 @@ h1,h2,h3,p{margin:0 0 .6rem}
 }
 .btn-find:hover{background:var(--brand-dark)}
 .manage{font-size:.88rem;color:var(--brand);font-weight:500}
+
+/* ===== SECTION HEADS UG FILTER PILLS ===== */
+section{padding:66px 0}
+.section-head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;margin-bottom:26px;
+}
+.section-head h2{
+  font-size:clamp(1.5rem,2.6vw,2.1rem);
+  font-weight:700;letter-spacing:-.3px;
+}
+.section-head p{color:var(--muted);margin:0;max-width:520px}
+.eyebrow{
+  /* gamay nga blue label sa taas sa heading */
+  display:block;font-size:.78rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--brand);margin-bottom:6px;
+}
+.pills{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}
+.pill{
+  padding:9px 18px;border-radius:999px;
+  border:1px solid var(--line);background:#fff;
+  font-size:.9rem;font-weight:500;color:var(--muted);
+  cursor:pointer;transition:all .2s;
+}
+.pill:hover{border-color:var(--brand);color:var(--brand)}
+.pill.is-active{
+  /* kini nga class gikan sa $active sa PHP */
+  background:var(--ink);border-color:var(--ink);color:#fff;
+}
+.empty{
+  /* mogawas kung walay car nga na-match sa filter */
+  padding:44px 20px;text-align:center;color:var(--muted);
+  background:var(--soft);border-radius:var(--radius);
+}
