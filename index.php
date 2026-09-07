@@ -18,6 +18,8 @@ $branches = [
   ['name' => 'Sibulan Airport', 'note' => 'Meet & greet at arrivals',  'img' => 'images/loc-sibulan.png'],
   ['name' => 'Rizal Boulevard', 'note' => 'Dumaguete City seaside hub', 'img' => 'images/loc-rizal.png'],
   ['name' => 'Valencia',        'note' => 'Highland pick-up point',     'img' => 'images/loc-valencia.png'],
+  ['name' => 'Dauin',           'note' => 'Dive-resort coast branch',   'img' => 'images/loc-dauin.png'],
+  ['name' => 'Bacong',          'note' => 'South coast pick-up point',  'img' => 'images/loc-bacong.png'],
 ];
 
 // google reviews, unom para naa duha ka desktop page ang slider

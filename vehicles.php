@@ -35,7 +35,7 @@ require 'header.php';
 
   <section class="page-hero" id="vehicles-hero">
     <h1>Our <span>Vehicles</span></h1>
-    <p>Every unit in our Dumaguete fleet — pick a category, compare specs, and book online.</p>
+    <p>Every unit in our Dumaguete fleet pick a category, compare specs, and book online.</p>
   </section>
 
   <section class="vehicles page-vehicles" id="all-vehicles">

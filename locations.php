@@ -28,10 +28,26 @@ $branches = [
     'hours' => 'Mon–Sun 7:00 am – 6:00 pm',
     'desc'  => 'Starting point for Casaroro Falls, Pulangbato and the mountain roads. Pick up here if you are staying in the highlands.',
   ],
+  [
+    'name'  => 'Dauin',
+    'note'  => 'Dive-resort coast branch',
+    'img'   => 'images/loc-dauin.png',
+    'addr'  => 'Poblacion, Dauin, Negros Oriental',
+    'hours' => 'Mon–Sun 7:00 am – 6:00 pm',
+    'desc'  => 'Right along the dive-resort strip — handy for Apo Island trips and the sanctuaries. Pick up here if you are staying in a Dauin beach resort.',
+  ],
+  [
+    'name'  => 'Bacong',
+    'note'  => 'South coast pick-up point',
+    'img'   => 'images/loc-bacong.png',
+    'addr'  => 'Poblacion, Bacong, Negros Oriental',
+    'hours' => 'Mon–Sun 7:00 am – 6:00 pm',
+    'desc'  => 'Just south of Dumaguete on the coastal highway — a quick stop before heading to Dauin, Zamboanguita or Siaton.',
+  ],
 ];
 
 // delivery areas nga wala pa'y branch
-$deliveryAreas = ['Dauin', 'Bacong', 'Bais City', 'Tanjay', 'San Jose', 'Amlan'];
+$deliveryAreas = ['Bais City', 'Tanjay', 'San Jose', 'Amlan'];
 
 $pageTitle = 'Our Locations — Shift Car Rental';
 require 'header.php';

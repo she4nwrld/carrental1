@@ -65,9 +65,9 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 
     <?php } else { ?>
 
-      <!-- bisita: My Booking ug Book Now -->
-      <a href="<?= e($base) ?>bookings.php">My Booking</a>
-      <a class="bookbtn" href="#" id="booknow-btn">Book Now</a>
+      <!-- bisita: My Booking ug Book Now — pareho mo-abli sa auth modal -->
+      <a href="#" class="needs-auth" data-next="<?= e($base) ?>bookings.php">My Booking</a>
+      <a class="bookbtn needs-auth" href="#" id="booknow-btn" data-next="<?= e($base) ?>vehicles.php">Book Now</a>
 
     <?php } ?>
   </div>
@@ -81,17 +81,28 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
     <h3 id="auth-modal-title">Ready to book?</h3>
     <p>You need an account to book a vehicle. Log in or create one — it only takes a minute.</p>
     <div class="auth-modal-actions">
-      <a class="am-btn" href="<?= e($base) ?>login.php?next=<?= urlencode($base ? '../vehicles.php' : 'vehicles.php') ?>">Log In</a>
+      <a class="am-btn" id="am-login" href="<?= e($base) ?>login.php">Log In</a>
       <a class="am-btn am-ghost" href="<?= e($base) ?>signup.php">Create Account</a>
     </div>
   </div>
 </div>
 <script>
 (function () {
-  var btn   = document.getElementById('booknow-btn');
   var modal = document.getElementById('auth-modal');
-  if (!btn || !modal) return;
-  btn.addEventListener('click', function (e) { e.preventDefault(); modal.hidden = false; });
+  if (!modal) return;
+  var loginLink = document.getElementById('am-login');
+  var loginBase = loginLink.getAttribute('href');
+
+  // tanan link nga naay .needs-auth mo-abli sa modal (My Booking ug Book Now)
+  document.querySelectorAll('.needs-auth').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var next = btn.getAttribute('data-next') || '';
+      loginLink.setAttribute('href', next ? loginBase + '?next=' + encodeURIComponent(next) : loginBase);
+      modal.hidden = false;
+    });
+  });
+
   document.getElementById('auth-modal-close').addEventListener('click', function () { modal.hidden = true; });
   modal.addEventListener('click', function (e) { if (e.target === modal) modal.hidden = true; });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.hidden = true; });
