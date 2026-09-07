@@ -75,3 +75,19 @@ $branches = [
   ['name' => 'Valencia',        'note' => 'Highland pick-up point',     'img' => 'images/loc-valencia.png'],
 ];
 
+// google reviews, unom ka buok para duha ka desktop pages ang slider
+$feedback = [
+  ['name' => 'Miguel Torres', 'role' => 'Apo Island Weekender', 'when' => '2 weeks ago',
+   'text' => 'The car was waiting for us right at Sibulan Airport arrivals, five minutes after landing we were already on the road to Dauin. Effortless from start to finish.'],
+  ['name' => 'Anna Reyes', 'role' => 'Local Renter', 'when' => '1 month ago',
+   'text' => 'The price I saw on the site was the exact price I paid. No surprise insurance add-ons, no fuel games. Best rental deal in Dumaguete, hands down.'],
+  ['name' => 'James Whitmore', 'role' => 'Visitor from Australia', 'when' => '2 months ago',
+   'text' => 'Flat tire on the mountain road up to Valencia. One call and the roadside team had us moving again within the hour. That kind of backup is worth everything.'],
+  ['name' => 'Grace Villanueva', 'role' => 'Family Trip', 'when' => '2 months ago',
+   'text' => 'Booked the Innova for a week with two kids in tow. Clean unit, cold aircon, child seat ready on pick-up. We just drove and enjoyed the island.'],
+  ['name' => 'Daniel Cruz', 'role' => 'Business Traveller', 'when' => '3 months ago',
+   'text' => 'Late flight into Sibulan and they still met me at arrivals. Paperwork took maybe ten minutes. This is now my default rental in Negros Oriental.'],
+  ['name' => 'Sofia Lim', 'role' => 'Valencia Day Tripper', 'when' => '4 months ago',
+   'text' => 'Rented the Swift for a Casaroro Falls run. Sharp handling on the climb and the tank was full. Returning it was just as painless as picking it up.'],
+];
+
