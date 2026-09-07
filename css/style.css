@@ -942,3 +942,33 @@ html { scroll-behavior: smooth; }
   .footer-locations { flex: 1 1 100%; }
   .footer-locations p { max-width: none; }
 }
+
+/* ===== auth pages: signup ug login ===== */
+.auth-main {
+  min-height: calc(100vh - 90px);
+  display: grid;
+  place-items: center;
+  padding: 40px 5%;
+  background: #f6f7f9;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 36px 32px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .08);
+}
+
+.auth-card h1 {
+  font-family: Poppins, sans-serif;
+  font-size: 26px;
+  margin: 0 0 6px;
+}
+
+.auth-sub {
+  margin: 0 0 22px;
+  color: #6b7280;
+  font-size: 14px;
+}
