@@ -299,3 +299,20 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
           </article>
 
         <?php } ?>
+
+                <?php if (count($shown) === 0) { ?>
+          <p class="no-cars">No <?= e($active) ?> units available yet.</p>
+        <?php } ?>
+      </div>
+    </div>
+
+    <button class="arrow" type="button" data-dir="next" aria-label="Next vehicles">&#8594;</button>
+
+  </div>
+
+  <!-- dots ra, kay ang arrows naa na sa kilid sa cards -->
+  <div class="controls" id="carControls">
+    <div class="dots" id="carDots" aria-hidden="true"></div>
+  </div>
+
+</section>
