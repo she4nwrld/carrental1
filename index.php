@@ -204,3 +204,40 @@ $hasLogo = file_exists(__DIR__ . '/' . $logo);
         </div>
       </div>
     </div>
+
+        <div class="line">
+      <div class="col">
+        <label for="category">Category</label>
+        <select id="category" name="category">
+          <?php foreach ($categories as $cat) { ?>
+            <option value="<?= e($cat) ?>"<?php if ($cat === $active) echo ' selected'; ?>><?= e($cat) ?></option>
+          <?php } ?>
+        </select>
+      </div>
+      <div class="col">
+        <label for="driver-age">Driver Age</label>
+        <select id="driver-age" name="driver_age">
+          <?php foreach ($ages as $bracket) { ?>
+            <option><?= e($bracket) ?></option>
+          <?php } ?>
+        </select>
+      </div>
+      <div class="col wide">
+        <label for="discount-code">Discount Code</label>
+        <input type="text" id="discount-code" name="discount_code" placeholder="Optional">
+      </div>
+      <div class="col wide findcol">
+        <button class="findbtn" type="submit">Find Your Car</button>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div>
+        <input type="checkbox" id="delivery" name="delivery">
+        <label class="checkbox-label" for="delivery">Deliver the car to Sibulan Airport arrivals</label>
+      </div>
+      <div><a href="#">Already booked? <u>Manage your booking</u></a></div>
+    </div>
+
+  </form>
+</section>
