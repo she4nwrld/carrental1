@@ -141,6 +141,72 @@ if ($action === 'cancel_booking') {
     exit;
 }
 
+/* ---------- pag-submit o pag-update sa review sa customer ---------- */
+if ($action === 'save_review') {
+
+    $rating = filter_input(INPUT_POST, 'rating', FILTER_VALIDATE_INT);
+    $text   = trim($_POST['review_text'] ?? '');
+
+    $errors = [];
+
+    if (!$rating || $rating < 1 || $rating > 5) {
+        $errors[] = 'Please choose a star rating from 1 to 5.';
+    }
+    if ($text === '') {
+        $errors[] = 'Please write a few words about your experience.';
+    } elseif (mb_strlen($text) > 600) {
+        $errors[] = 'Review is too long — keep it under 600 characters.';
+    }
+
+    /* review lang ang pwede sa naka-complete na ug booking,
+       para verified renter gyud ang tanan reviews */
+    if (empty($errors)) {
+        $stmt = $pdo->prepare("SELECT COUNT(*) AS done FROM bookings
+                               WHERE user_id = :user_id AND status = 'completed'");
+        $stmt->bindValue(':user_id', currentUserId(), PDO::PARAM_INT);
+        $stmt->execute();
+        if ((int)$stmt->fetch()['done'] === 0) {
+            $errors[] = 'You can leave a review after completing a rental with us.';
+        }
+    }
+
+    if (!empty($errors)) {
+        $_SESSION['review_errors'] = $errors;
+        $_SESSION['review_old']    = ['rating' => (string)$rating, 'review_text' => $text];
+        header('Location: reviews.php#write-review');
+        exit;
+    }
+
+    /* usa ra ka review kada user — kung naa na, i-update nalang */
+    $sql = "INSERT INTO reviews (user_id, rating, review_text)
+            VALUES (:user_id, :rating, :review_text)
+            ON DUPLICATE KEY UPDATE
+              rating = VALUES(rating),
+              review_text = VALUES(review_text),
+              created_at = CURRENT_TIMESTAMP";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':user_id', currentUserId(), PDO::PARAM_INT);
+    $stmt->bindValue(':rating', $rating, PDO::PARAM_INT);
+    $stmt->bindValue(':review_text', $text);
+    $stmt->execute();
+
+    header('Location: reviews.php?reviewed=1#customer-reviews');
+    exit;
+}
+
+/* ---------- pag-delete sa kaugalingon nga review ---------- */
+if ($action === 'delete_review') {
+
+    /* ang user_id sa WHERE mao ang guard — kaugalingon ra nga review ang ma-delete */
+    $stmt = $pdo->prepare("DELETE FROM reviews WHERE user_id = :user_id");
+    $stmt->bindValue(':user_id', currentUserId(), PDO::PARAM_INT);
+    $stmt->execute();
+
+    header('Location: reviews.php?deleted=1#customer-reviews');
+    exit;
+}
+
 /* wala mailhan nga action */
 header('Location: index.php');
 exit;
