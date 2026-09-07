@@ -38,4 +38,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "That email is already registered.";
     }
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
+    try {
+        // password_hash, dili plain text — walay makakita sa tinuod nga password
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+
+        $sql = "INSERT INTO users (full_name, email, phone, password)
+                VALUES (:full_name, :email, :phone, :password)";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':full_name', $fullName);
+        $stmt->bindValue(':email',     $email);
+        $stmt->bindValue(':phone',     $phone);
+        $stmt->bindValue(':password',  $hash);
+        $stmt->execute();
+
+        // auto-login dayon human sa signup
+        $_SESSION['user_id']   = (int) $pdo->lastInsertId();
+        $_SESSION['user_name'] = $fullName;
+        $_SESSION['role']      = 'customer';
+
+        header('Location: index.php?welcome=1');
+        exit;
+    } catch (PDOException $e) {
+        $errors[] = "Could not create your account. Please try again.";
+    }
+}
+
 ?>
