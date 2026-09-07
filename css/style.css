@@ -201,3 +201,37 @@ section{padding:66px 0}
   padding:44px 20px;text-align:center;color:var(--muted);
   background:var(--soft);border-radius:var(--radius);
 }
+
+/* ===== SHARED CAROUSEL: gamiton sa cars ug reviews ===== */
+.carousel{position:relative}   /* para ma-anchor ang arrows */
+.viewport{overflow:hidden;padding:6px 2px 10px}  /* tagoon ang cards sa gawas */
+.track{
+  /* kini ang mo-slide, gi-move sa JS via transform */
+  display:flex;gap:22px;
+  transition:transform .45s cubic-bezier(.22,.61,.36,1);
+  will-change:transform;   /* hint sa browser, mo-smooth ang animation */
+}
+.track > *{flex:0 0 auto}   /* dili mo-shrink ang cards */
+.arrow{
+  position:absolute;top:50%;
+  transform:translateY(-50%);   /* i-center exactly sa tunga */
+  width:42px;height:42px;border-radius:50%;
+  display:grid;place-items:center;cursor:pointer;
+  background:#fff;border:1px solid var(--line);
+  box-shadow:var(--shadow);z-index:5;transition:all .2s;
+}
+.arrow:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+.arrow:disabled{opacity:.35;cursor:not-allowed}  /* kung kataposan na sa slide */
+.arrow.prev{left:-14px}
+.arrow.next{right:-14px}
+.arrow svg{width:18px;height:18px}
+.dots{display:flex;justify-content:center;gap:9px;margin-top:22px}
+.dot{
+  width:9px;height:9px;padding:0;border:0;border-radius:50%;
+  background:#cfd6df;cursor:pointer;transition:all .25s;
+}
+.dot:hover{background:#a9b3c0}
+.dot.is-active{
+  background:var(--brand);
+  width:26px;border-radius:999px;   /* mo-tag-as ang active dot */
+}
