@@ -1,14 +1,14 @@
 <?php
 require 'auth.php';
 require 'database/config.php';
-require 'helpers.php';
+require_once 'helpers.php';
 
 requireLogin();
 
 $pdo = getConnection();
 
 /* tanan booking sa naka-login nga user, bag-o ang una */
-$sql = "SELECT b.*, c.name AS car_name, c.type AS car_type, c.img AS car_img
+$sql = "SELECT b.*, c.name AS car_name, c.type AS car_type, c.img AS car_img, c.price
         FROM bookings b
         JOIN cars c ON c.id = b.car_id
         WHERE b.user_id = :user_id
@@ -24,7 +24,7 @@ $flash = '';
 if (isset($_GET['cancelled'])) {
     $flash = 'Your booking has been cancelled.';
 } elseif (isset($_GET['notfound'])) {
-    $flash = 'We could not find that booking.';
+    $flash = 'We could not find that booking, or it can no longer be cancelled.';
 }
 
 function niceDate(string $ymd): string {
@@ -56,12 +56,18 @@ require 'header.php';
 
       <div class="list-empty">
         <p>You have no bookings yet.</p>
-        <a class="auth-btn" href="index.php#our-vehicles">Browse our vehicles</a>
+        <a class="auth-btn" href="vehicles.php#all-vehicles">Browse our vehicles</a>
       </div>
 
     <?php } else { ?>
 
       <?php foreach ($bookings as $bk) { ?>
+        <?php
+          /* pending ug confirmed ra ang ma-cancel — parehas sa
+             WHERE clause sa cancel_booking sa function.php */
+          $canCancel = in_array($bk['status'], ['pending', 'confirmed'], true);
+          $discount  = (int) $bk['discount'];
+        ?>
 
         <article class="bk-card">
 
@@ -83,14 +89,24 @@ require 'header.php';
               <div><span>Pick-up</span><strong><?= e(niceDate($bk['pickup_date'])) ?></strong><em><?= e($bk['pickup_location']) ?></em></div>
               <div><span>Return</span><strong><?= e(niceDate($bk['return_date'])) ?></strong><em><?= e($bk['return_location']) ?></em></div>
               <div><span>Duration</span><strong><?= e($bk['days']) ?> <?= $bk['days'] == 1 ? 'day' : 'days' ?></strong><em><?= $bk['delivery'] ? 'With delivery' : 'Self pick-up' ?></em></div>
-              <div><span>Total</span><strong>&#8369;<?= e(number_format($bk['total'])) ?></strong><em>Due on pick-up</em></div>
+              <div><span>Total</span><strong><?= e(peso($bk['total'])) ?></strong><em>Due on pick-up</em></div>
             </div>
+
+            <?php if ($discount > 0 || !empty($bk['discount_code'])) { ?>
+              <p class="saved">
+                <?php if (!empty($bk['discount_code'])) { ?>
+                  <?= e(str_replace(',', ' + ', $bk['discount_code'])) ?> applied
+                <?php } ?>
+                <?php if ($discount > 0) { ?>
+                  — you saved <?= e(peso($discount)) ?>
+                <?php } ?>
+              </p>
+            <?php } ?>
 
             <div class="bk-foot">
               <p class="bk-made">Booked <?= e(date('M j, Y', strtotime($bk['created_at']))) ?></p>
 
-              <?php if ($bk['status'] === 'pending') { ?>
-                <!-- pending pa ra ang ma-cancel sa customer -->
+              <?php if ($canCancel) { ?>
                 <form method="POST" action="function.php" class="bk-cancel"
                       onsubmit="return confirm('Cancel this booking?');">
                   <input type="hidden" name="action" value="cancel_booking">

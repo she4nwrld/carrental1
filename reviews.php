@@ -5,19 +5,20 @@ require 'helpers.php';
 
 $pdo = getConnection();
 
-/* tanan customer reviews gikan sa database, bag-o ang una */
+// Approved reviews, newest first
 $sql = "SELECT r.rating, r.review_text, r.created_at, u.full_name
         FROM reviews r
         JOIN users u ON u.id = r.user_id
+        WHERE r.approved = 1
         ORDER BY r.created_at DESC";
 $customerReviews = $pdo->query($sql)->fetchAll();
 
-/* ang naka-login: iyang kaugalingon nga review (kung naa) ug kung completed na ba iyang booking */
-$myReview   = null;
-$canReview  = false;
+// Logged in user: their own review and whether a rental is finished
+$myReview  = null;
+$canReview = false;
 
 if (isLoggedIn()) {
-    $stmt = $pdo->prepare("SELECT rating, review_text FROM reviews WHERE user_id = :user_id");
+    $stmt = $pdo->prepare("SELECT rating, review_text, approved FROM reviews WHERE user_id = :user_id");
     $stmt->bindValue(':user_id', currentUserId(), PDO::PARAM_INT);
     $stmt->execute();
     $myReview = $stmt->fetch() ?: null;
@@ -29,16 +30,16 @@ if (isLoggedIn()) {
     $canReview = (int)$stmt->fetch()['done'] > 0;
 }
 
-/* mga error ug daan nga input gikan sa function.php (flash sa session, pareho sa book.php) */
+// Errors and old input from function.php
 $errors = $_SESSION['review_errors'] ?? [];
 $old    = $_SESSION['review_old'] ?? [];
 unset($_SESSION['review_errors'], $_SESSION['review_old']);
 
-/* unsa ang i-prefill: flash old > akoang na-save nga review > blanko */
+// Prefill order: flash old, saved review, blank
 $formRating = $old['rating'] ?? ($myReview['rating'] ?? '5');
 $formText   = $old['review_text'] ?? ($myReview['review_text'] ?? '');
 
-/* flash messages gikan sa redirect */
+// Flash messages
 $flash = '';
 if (isset($_GET['reviewed'])) {
     $flash = 'Thank you! Your review has been posted.';
@@ -46,13 +47,17 @@ if (isset($_GET['reviewed'])) {
     $flash = 'Your review has been removed.';
 }
 
-/* average sa customer ratings, fallback sa 4.9 kung wala pa'y review */
-$avg = 4.9;
-if (count($customerReviews) > 0) {
-    $avg = round(array_sum(array_column($customerReviews, 'rating')) / count($customerReviews), 1);
-}
+// Real count and average
+$rvCount = count($customerReviews);
+$rvAvg   = $rvCount > 0
+    ? round(array_sum(array_column($customerReviews, 'rating')) / $rvCount, 1)
+    : 0;
 
-/* google reviews nga naa nay daan, makita gihapon sa ubos */
+// Same blend as the homepage so the numbers match
+$blendCount = 1989 + $rvCount;
+$blendAvg   = round(((4.9 * 1989) + ($rvAvg * $rvCount)) / $blendCount, 1);
+
+// Google reviews already on file
 $feedback = [
   ['name' => 'Miguel Torres', 'role' => 'Apo Island Weekender', 'when' => '2 weeks ago',
    'text' => 'The car was waiting for us right at Sibulan Airport arrivals, five minutes after landing we were already on the road to Dauin. Effortless from start to finish.'],
@@ -68,12 +73,11 @@ $feedback = [
    'text' => 'Rented the Swift for a Casaroro Falls run. Sharp handling on the climb and the tank was full. Returning it was just as painless as picking it up.'],
 ];
 
-/* pang-format sa petsa: 2026-09-07 -> Sep 7, 2026 */
+// Date and star helpers
 function reviewDate(string $ts): string {
     return date('M j, Y', strtotime($ts));
 }
 
-/* stars kada rating: 4 -> ★★★★☆ */
 function stars(int $rating): string {
     return str_repeat('&#9733;', $rating) . str_repeat('&#9734;', 5 - $rating);
 }
@@ -89,13 +93,14 @@ require 'header.php';
     <p>What renters say about driving with Shift across Negros Oriental.</p>
 
     <div class="rv-rating">
-      <span class="rv-big"><?= e(number_format($avg, 1)) ?></span>
-      <span class="rv-stars" aria-label="<?= e($avg) ?> out of 5 stars"><span aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span></span>
-      <span class="rv-count">from <?= e(number_format(1989 + count($customerReviews))) ?> reviews</span>
+      <span class="rv-big"><?= e(number_format($blendAvg, 1)) ?></span>
+      <span class="rv-stars" aria-label="<?= e($blendAvg) ?> out of 5 stars">
+        <span aria-hidden="true"><?= stars((int)round($blendAvg)) ?></span>
+      </span>
+      <span class="rv-count">from <?= e(number_format($blendCount)) ?> reviews</span>
     </div>
   </section>
 
-  <!-- ===== write a review ===== -->
   <section class="review-form-sec" id="write-review">
 
     <?php if ($flash !== '') { ?>
@@ -123,6 +128,13 @@ require 'header.php';
       <div class="review-form-card">
         <h2><?= $myReview ? 'Edit your' : 'Write a' ?> <span>review</span></h2>
 
+        <?php if ($myReview && (int)$myReview['approved'] === 0) { ?>
+          <p class="review-pending">
+            Your review is being checked by our team, so it is not on the site yet.
+            You can still edit it below.
+          </p>
+        <?php } ?>
+
         <?php if (!empty($errors)) { ?>
           <div class="auth-errors">
             <ul>
@@ -136,7 +148,6 @@ require 'header.php';
         <form method="post" action="function.php">
           <input type="hidden" name="action" value="save_review">
 
-          <!-- radio stars: 5 ka radio, CSS ra ang naghimo sa hover/checked look -->
           <fieldset class="star-pick">
             <legend>Your rating</legend>
             <?php for ($i = 5; $i >= 1; $i--) { ?>
@@ -157,7 +168,6 @@ require 'header.php';
         </form>
 
         <?php if ($myReview) { ?>
-          <!-- lahi nga form para sa delete, dili pwede i-nest ang form sulod sa form -->
           <form method="post" action="function.php" class="review-delete">
             <input type="hidden" name="action" value="delete_review">
             <button type="submit">Delete my review</button>
@@ -169,14 +179,13 @@ require 'header.php';
 
   </section>
 
-  <!-- ===== customer reviews gikan sa database ===== -->
   <section class="customer-reviews" id="customer-reviews">
     <div class="sec-head">
       <h2>From our <span>Renters</span></h2>
-      <p><?= count($customerReviews) === 0 ? 'Be the first to leave a review!' : 'Real reviews from verified Shift renters.' ?></p>
+      <p><?= $rvCount === 0 ? 'Be the first to leave a review!' : 'Real reviews from verified Shift renters.' ?></p>
     </div>
 
-    <?php if (count($customerReviews) > 0) { ?>
+    <?php if ($rvCount > 0) { ?>
       <div class="reviews-grid">
         <?php foreach ($customerReviews as $note) { ?>
 
@@ -189,6 +198,8 @@ require 'header.php';
                 <h3><?= e($note['full_name']) ?><span class="rv-check" title="Verified renter">&#10003;</span></h3>
                 <p>Verified Renter &middot; <?= e(reviewDate($note['created_at'])) ?></p>
               </div>
+
+              <span class="rv-g" role="img" aria-label="Google review"><?= googleMark() ?></span>
             </div>
 
             <p class="rv-stars" aria-label="<?= e($note['rating']) ?> out of 5 stars">
@@ -204,11 +215,10 @@ require 'header.php';
     <?php } ?>
   </section>
 
-  <!-- ===== google reviews nga daan na ===== -->
   <section class="customer-reviews" id="google-reviews">
     <div class="sec-head">
       <h2>Google <span>Reviews</span></h2>
-      <p>4.9 average from 1,989 Google reviews</p>
+      <p>Verified reviews from Google</p>
     </div>
 
     <div class="reviews-grid">
@@ -238,7 +248,7 @@ require 'header.php';
       <?php } ?>
     </div>
 
-    <p class="rv-more">&amp; 1,900+ more <span>Google reviews</span></p>
+    <p class="rv-more">&amp; many more on <span>Google</span></p>
   </section>
 
 </main>

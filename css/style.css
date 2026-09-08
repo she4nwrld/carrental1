@@ -2354,3 +2354,295 @@ html {
   gap: 8px;
   font-size: 13.5px;
 }
+
+.search-summary { margin: 0 0 18px; font-size: 15px; }
+.search-summary p { margin: 4px 0; }
+.search-summary .ok { color: #1e7a45; }
+.search-summary .err { color: #c0392b; }
+
+/* ===== booking page: itemised quote box ===== */
+/* ang .book-total sa taas usa ka flex row. karon naa nay lista sulod,
+   so kinahanglan block na siya */
+.book-total {
+  display: block;
+  padding: 14px 18px;
+}
+
+.book-total .quote {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.book-total .quote li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+  font-size: 13.5px;
+  color: #4b5563;
+  border-bottom: 1px dashed #fde68a;
+}
+
+.book-total .quote li[hidden] { display: none; }
+
+.book-total .quote li:last-child { border-bottom: 0; }
+
+.book-total .quote-total {
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid #fde68a;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: #131A2C;
+}
+
+.book-total .quote-total strong {
+  font-family: "Poppins", sans-serif;
+  font-size: 22px;
+  color: #131A2C;
+}
+
+/* ===== discount code field ===== */
+.promo-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.promo-row input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  box-sizing: border-box;
+}
+
+.promo-row input[type="text"]:focus {
+  outline: none;
+  border-color: #FEB802;
+  box-shadow: 0 0 0 3px rgba(254, 184, 2, .18);
+}
+
+.promo-row input[type="text"]::placeholder {
+  text-transform: none;
+  letter-spacing: normal;
+  color: #9ca3af;
+}
+
+.btn-ghost {
+  flex: 0 0 auto;
+  padding: 0.55rem 1.1rem;
+  border: 2px solid #131A2C;
+  border-radius: 10px;
+  background: #fff;
+  color: #131A2C;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+
+.btn-ghost:hover { background: #131A2C; color: #fff; }
+
+/* ang "(optional)" dili dapat uppercase sama sa label */
+.muted {
+  color: #9ca3af;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* ===== inline field messages ===== */
+.field-error,
+.field-ok {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.field-error { color: #b91c1c; }
+.field-ok    { color: #15803d; font-weight: 600; }
+
+/* ===== disabled confirm button ===== */
+.auth-btn[disabled] {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.auth-btn[disabled]:hover { background: #f5b301; }
+
+/* ===== book page: spec rows ===== */
+.book-specs span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  color: #434B4E;
+}
+
+.book-specs .ic {
+  flex: 0 0 16px;
+  display: flex;
+  color: #131A2C;
+}
+
+.book-specs .ic svg {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  display: block;
+}
+
+/* ===== deals page: "no code needed" box ===== */
+.deal-code.muted {
+  background: #F7F8FA;
+  border-style: solid;
+  border-color: #E6E8EC;
+  color: #7C8595;
+}
+
+/* ===== bookings ug success: linya sa discount ===== */
+.saved {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #15803d;
+}
+
+/* ===== mobile ===== */
+@media (max-width: 640px) {
+  .promo-row { flex-direction: column; }
+  .btn-ghost { width: 100%; }
+
+  .book-total .quote li {
+    font-size: 13px;
+    gap: 10px;
+  }
+
+  .book-total .quote-total strong { font-size: 19px; }
+}
+
+/* per-car total sa vehicles page, makita lang kung naay petsa */
+.car-quote {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: #4b5563;
+}
+
+.car-quote strong {
+  font-family: "Poppins", sans-serif;
+  font-size: 15px;
+  color: #131A2C;
+}
+
+.car-quote em {
+  display: block;
+  font-style: normal;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: #15803d;
+  font-weight: 600;
+}
+
+/* lista sa kondisyon sulod sa deal card */
+.deal-terms {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.deal-terms li {
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 5px;
+  font-size: 12.5px;
+  color: #4b5563;
+}
+
+.deal-terms li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #FEB802;
+  font-weight: 700;
+}
+
+/* naka-book na sa gipili nga petsa makita pa, dili ma-klik */
+.car-taken { opacity: .6; }
+
+.car-taken .car-photo img { filter: grayscale(1); }
+
+.car-booked {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  background: #131A2C;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 50px;
+}
+
+.car-quote-off {
+  background: #F7F8FA;
+  border-color: #E6E8EC;
+  color: #6b7280;
+}
+
+.car-quote-off em {
+  color: #9CA3AF;
+  font-weight: 500;
+}
+
+.label-off {
+  display: block;
+  margin-top: auto;
+  padding: 12px 10px;
+  background: #F3F4F6;
+  color: #9CA3AF;
+  border-radius: 8px;
+  text-align: center;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.admin-back { margin: -6px 0 18px; font-size: 13px; }
+.admin-back a { color: #6b7280; text-decoration: none; }
+.admin-back a:hover { color: #131A2C; }
+.rv-row .ad-body { padding: 18px; }
+.rv-stars { color: #FEB802; letter-spacing: 2px; font-size: 15px; }
+.rv-text { margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: #374151; }
+.stat em { display: block; margin-top: 4px; font-style: normal; font-size: 11px; color: #9CA3AF; }
+.ad-disc { margin: 10px 0 0; font-size: 12.5px; font-weight: 600; color: #15803d; }
+
+.review-pending {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #92400E;
+}
+.rv-more a { color: inherit; text-decoration: none; }
+.rv-more a:hover { text-decoration: underline; }

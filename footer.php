@@ -12,9 +12,9 @@ $base = $base ?? '';
 
       <!-- letters lang sa karon, wala pa koy icon files -->
       <div class="footer-social">
-        <a href="#" aria-label="Facebook">f</a>
-        <a href="#" aria-label="Instagram">ig</a>
-        <a href="#" aria-label="LinkedIn">in</a>
+        <a href="https://www.facebook.com/sheene.prestin.55" target="_blank" rel="noopener noreferrer" aria-label="Facebook">f</a>
+        <a href="https://www.instagram.com/sheene_ig/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">ig</a>
+        <a href="https://www.linkedin.com/in/sheene-prestin-72049726a/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">in</a>
       </div>
     </div>
 
@@ -22,8 +22,8 @@ $base = $base ?? '';
       <h2>Quick Links</h2>
       <ul>
         <li><a href="<?= e($base) ?>vehicles.php">Vehicles</a></li>
-        <li><a href="#">Terms and Conditions</a></li>
-        <li><a href="#">Fees and Charges Guide</a></li>
+        <li><a href="<?= e($base) ?>terms.php">Terms and Conditions</a></li>
+        <li><a href="<?= e($base) ?>fees.php">Fees and Charges Guide</a></li>
         <li><a href="<?= e($base) ?>locations.php">Locations</a></li>
         <li><a href="<?= e($base) ?>reviews.php">Reviews</a></li>
         <li><a href="<?= e($base) ?>faqs.php">FAQ</a></li>

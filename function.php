@@ -2,10 +2,10 @@
 require 'auth.php';
 require 'database/config.php';
 require 'validation.php';
+require_once 'helpers.php';
 
 requireLogin();
 
-/* handler ra ni nga file, wala'y HTML output */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php');
     exit;
@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $action = $_POST['action'] ?? '';
 $pdo    = getConnection();
 
-/* ---------- paghimo ug bag-ong booking ---------- */
+/* ---------- create booking ---------- */
 if ($action === 'create_booking') {
 
     $carId          = filter_input(INPUT_POST, 'car_id', FILTER_VALIDATE_INT);
@@ -23,19 +23,19 @@ if ($action === 'create_booking') {
     $pickupDate     = trim($_POST['pickup_date'] ?? '');
     $returnDate     = trim($_POST['return_date'] ?? '');
     $driverAge      = trim($_POST['driver_age'] ?? '');
+    $discountCode   = strtoupper(trim($_POST['discount_code'] ?? ''));
     $delivery       = isset($_POST['delivery']) ? 1 : 0;
 
-    /* kinahanglan pareho ni sa lista sa book.php */
-    $pickups = ['Sibulan Airport', 'Rizal Boulevard', 'Valencia', 'Dauin', 'Bacong'];
-    $ages    = ['21-24', '25-29', '30-64', '65+'];
+    $pickups = pickupPoints();
+    $ages    = ageBrackets();
 
-    /* i-tipig ang gi-type para dili mawala kung mo-balik sa form */
     $old = [
         'pickup_location' => $pickupLocation,
         'return_location' => $returnLocation,
         'pickup_date'     => $pickupDate,
         'return_date'     => $returnDate,
         'driver_age'      => $driverAge,
+        'discount_code'   => $discountCode,
         'delivery'        => (string)$delivery,
     ];
 
@@ -52,7 +52,10 @@ if ($action === 'create_booking') {
         $errors[] = 'Please choose a vehicle first.';
     }
 
-    /* kung naay sayop, i-uli sa form dala ang error */
+    if (isYmd($pickupDate) && daysUntil($pickupDate) < 0) {
+        $errors[] = 'Pick-up date cannot be in the past.';
+    }
+
     if (!empty($errors)) {
         $_SESSION['booking_errors'] = $errors;
         $_SESSION['booking_old']    = $old;
@@ -60,8 +63,6 @@ if ($action === 'create_booking') {
         exit;
     }
 
-    /* i-kuha ang presyo gikan sa database, dili gikan sa form —
-       basin gi-usab sa user ang hidden field sa browser */
     $stmt = $pdo->prepare("SELECT price FROM cars WHERE id = :id AND available = 1");
     $stmt->bindValue(':id', $carId, PDO::PARAM_INT);
     $stmt->execute();
@@ -73,16 +74,53 @@ if ($action === 'create_booking') {
         exit;
     }
 
-    $days  = daysBetween($pickupDate, $returnDate);
-    $total = ($days * (int)$car['price']) + ($delivery ? 500 : 0);
+    $days  = tripDays($pickupDate, $returnDate);
+    $found = findPromos($pdo, $discountCode);
+    $quote = quotePrice($found['promos'], (int)$car['price'], $days, (bool)$delivery, $pickupDate);
+
+    foreach ($found['unknown'] as $bad) {
+        $errors[] = '"' . $bad . '" is not a valid discount code.';
+    }
+    $errors = array_merge($errors, $quote['errors']);
+
+    /* unang tan-aw, para makauban ang error sa promo errors */
+    if (!carIsFree($pdo, $carId, $pickupDate, $returnDate)) {
+        $errors[] = 'Sorry, that unit was just booked for those dates. Please pick other dates.';
+    }
+
+    if (!empty($errors)) {
+        $_SESSION['booking_errors'] = $errors;
+        $_SESSION['booking_old']    = $old;
+        header('Location: book.php?car_id=' . (int)$carId);
+        exit;
+    }
+
+    $appliedCode = $quote['applied'] ? implode(',', $quote['applied']) : null;
+
+    /* store the days we actually billed, promos can change the count */
+    $billedDays = $quote['billable_days'] ?: $days;
 
     try {
+        /* ang check ug ang insert kinahanglan usa ra ka transaction,
+           kung dili duha ka tawo makasulod sa parehas nga segundo */
+        $pdo->beginTransaction();
+
+        if (!carIsFree($pdo, $carId, $pickupDate, $returnDate, null, true)) {
+            $pdo->rollBack();
+            $_SESSION['booking_errors'] = ['Sorry, that unit was just booked for those dates. Please pick other dates.'];
+            $_SESSION['booking_old']    = $old;
+            header('Location: book.php?car_id=' . (int)$carId);
+            exit;
+        }
+
         $sql = "INSERT INTO bookings
                   (user_id, car_id, pickup_location, return_location,
-                   pickup_date, return_date, driver_age, delivery, days, total)
+                   pickup_date, return_date, driver_age, delivery, days,
+                   subtotal, discount_code, discount, total)
                 VALUES
                   (:user_id, :car_id, :pickup_location, :return_location,
-                   :pickup_date, :return_date, :driver_age, :delivery, :days, :total)";
+                   :pickup_date, :return_date, :driver_age, :delivery, :days,
+                   :subtotal, :discount_code, :discount, :total)";
 
         $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':user_id',         currentUserId(), PDO::PARAM_INT);
@@ -92,17 +130,26 @@ if ($action === 'create_booking') {
         $stmt->bindValue(':pickup_date',     $pickupDate);
         $stmt->bindValue(':return_date',     $returnDate);
         $stmt->bindValue(':driver_age',      $driverAge);
-        $stmt->bindValue(':delivery',        $delivery, PDO::PARAM_INT);
-        $stmt->bindValue(':days',            $days,     PDO::PARAM_INT);
-        $stmt->bindValue(':total',           $total,    PDO::PARAM_INT);
+        $stmt->bindValue(':delivery',        $delivery,   PDO::PARAM_INT);
+        $stmt->bindValue(':days',            $billedDays, PDO::PARAM_INT);
+        $stmt->bindValue(':subtotal',        $quote['subtotal'], PDO::PARAM_INT);
+        $stmt->bindValue(':discount_code',   $appliedCode, $appliedCode === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(':discount',        $quote['discount'], PDO::PARAM_INT);
+        $stmt->bindValue(':total',           $quote['total'],    PDO::PARAM_INT);
         $stmt->execute();
 
         $bookingId = (int)$pdo->lastInsertId();
+
+        $pdo->commit();
 
         header('Location: success.php?booking=' . $bookingId);
         exit;
 
     } catch (PDOException $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log('Booking insert failed: ' . $e->getMessage());
         $_SESSION['booking_errors'] = ['Could not save your booking. Please try again.'];
         $_SESSION['booking_old']    = $old;
         header('Location: book.php?car_id=' . $carId);
@@ -110,7 +157,7 @@ if ($action === 'create_booking') {
     }
 }
 
-/* ---------- pag-cancel sa booking sa customer ---------- */
+/* ---------- cancel booking ---------- */
 if ($action === 'cancel_booking') {
 
     $bookingId = filter_input(INPUT_POST, 'booking_id', FILTER_VALIDATE_INT);
@@ -120,18 +167,15 @@ if ($action === 'cancel_booking') {
         exit;
     }
 
-    /* ang user_id ug status naa sa WHERE — mao ni ang tinuod nga guard.
-       dili igo ang pagtago sa button sa bookings.php */
     $sql = "UPDATE bookings
             SET status = 'cancelled'
-            WHERE id = :id AND user_id = :user_id AND status = 'pending'";
+            WHERE id = :id AND user_id = :user_id AND status IN ('pending','confirmed')";
 
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue(':id', $bookingId, PDO::PARAM_INT);
     $stmt->bindValue(':user_id', currentUserId(), PDO::PARAM_INT);
     $stmt->execute();
 
-    /* kung walay narow nga na-update, dili iya ni o dili na pending */
     if ($stmt->rowCount() === 0) {
         header('Location: bookings.php?notfound=1');
         exit;
@@ -141,7 +185,7 @@ if ($action === 'cancel_booking') {
     exit;
 }
 
-/* ---------- pag-submit o pag-update sa review sa customer ---------- */
+/* ---------- save review ---------- */
 if ($action === 'save_review') {
 
     $rating = filter_input(INPUT_POST, 'rating', FILTER_VALIDATE_INT);
@@ -158,8 +202,6 @@ if ($action === 'save_review') {
         $errors[] = 'Review is too long — keep it under 600 characters.';
     }
 
-    /* review lang ang pwede sa naka-complete na ug booking,
-       para verified renter gyud ang tanan reviews */
     if (empty($errors)) {
         $stmt = $pdo->prepare("SELECT COUNT(*) AS done FROM bookings
                                WHERE user_id = :user_id AND status = 'completed'");
@@ -177,7 +219,6 @@ if ($action === 'save_review') {
         exit;
     }
 
-    /* usa ra ka review kada user — kung naa na, i-update nalang */
     $sql = "INSERT INTO reviews (user_id, rating, review_text)
             VALUES (:user_id, :rating, :review_text)
             ON DUPLICATE KEY UPDATE
@@ -195,10 +236,9 @@ if ($action === 'save_review') {
     exit;
 }
 
-/* ---------- pag-delete sa kaugalingon nga review ---------- */
+/* ---------- delete review ---------- */
 if ($action === 'delete_review') {
 
-    /* ang user_id sa WHERE mao ang guard — kaugalingon ra nga review ang ma-delete */
     $stmt = $pdo->prepare("DELETE FROM reviews WHERE user_id = :user_id");
     $stmt->bindValue(':user_id', currentUserId(), PDO::PARAM_INT);
     $stmt->execute();
@@ -207,6 +247,5 @@ if ($action === 'delete_review') {
     exit;
 }
 
-/* wala mailhan nga action */
 header('Location: index.php');
 exit;

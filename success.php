@@ -1,7 +1,7 @@
 <?php
 require 'auth.php';
 require 'database/config.php';
-require 'helpers.php';
+require_once 'helpers.php';
 
 requireLogin();
 
@@ -39,6 +39,20 @@ function niceDate(string $ymd): string {
 /* reference number nga mas tan-awon: SHIFT-0007 */
 $reference = 'SHIFT-' . str_pad((string)$booking['id'], 4, '0', STR_PAD_LEFT);
 
+/* ang subtotal gikan sa DB. kung daan pa ang row ug wala pa ni,
+   i-kwenta gikan sa rate para dili mo-zero ang lista */
+$subtotal   = (int) $booking['subtotal'] > 0
+  ? (int) $booking['subtotal']
+  : (int) $booking['price'] * (int) $booking['days'];
+
+$discount    = (int) $booking['discount'];
+$deliveryAmt = $booking['delivery'] ? deliveryFee() : 0;
+
+/* pila ka adlaw ang tinuod nga gibayran — makita kung naay free day */
+$billable = (int) $booking['price'] > 0
+  ? (int) round($subtotal / (int) $booking['price'])
+  : (int) $booking['days'];
+
 $pageTitle = 'Booking Confirmed — Shift Car Rental';
 require 'header.php';
 ?>
@@ -68,13 +82,37 @@ require 'header.php';
       <div><dt>Return</dt><dd><?= e(niceDate($booking['return_date'])) ?> &middot; <?= e($booking['return_location']) ?></dd></div>
       <div><dt>Duration</dt><dd><?= e($booking['days']) ?> <?= $booking['days'] == 1 ? 'day' : 'days' ?></dd></div>
       <div><dt>Driver's age</dt><dd><?= e($booking['driver_age']) ?></dd></div>
-      <div><dt>Delivery</dt><dd><?= $booking['delivery'] ? 'Yes (&#8369;500)' : 'No, I will pick it up' ?></dd></div>
+      <div><dt>Delivery</dt><dd><?= $booking['delivery'] ? 'Yes (&#8369;' . e(number_format(deliveryFee())) . ')' : 'No, I will pick it up' ?></dd></div>
+      <?php if (!empty($booking['discount_code'])) { ?>
+        <div><dt>Discount code</dt><dd><?= e(str_replace(',', ' + ', $booking['discount_code'])) ?></dd></div>
+      <?php } ?>
       <div><dt>Status</dt><dd><span class="pill pill-<?= e($booking['status']) ?>"><?= e(ucfirst($booking['status'])) ?></span></dd></div>
     </dl>
 
     <div class="book-total">
-      <span>Total due on pick-up</span>
-      <strong>&#8369;<?= e(number_format($booking['total'])) ?></strong>
+      <ul class="quote">
+        <li><span>Daily rate</span><span><?= e(peso($booking['price'])) ?></span></li>
+        <li>
+          <span><?= (int) $billable ?> <?= $billable === 1 ? 'day' : 'days' ?> billed</span>
+          <span><?= e(peso($subtotal)) ?></span>
+        </li>
+        <?php if ($discount > 0) { ?>
+          <li>
+            <span>Discount<?= !empty($booking['discount_code']) ? ' (' . e(str_replace(',', ' + ', $booking['discount_code'])) . ')' : '' ?></span>
+            <span>&minus;<?= e(peso($discount)) ?></span>
+          </li>
+        <?php } ?>
+        <?php if ($deliveryAmt > 0) { ?>
+          <li><span>Delivery</span><span><?= e(peso($deliveryAmt)) ?></span></li>
+        <?php } ?>
+        <li class="quote-total">
+          <span>Total due on pick-up</span>
+          <strong><?= e(peso($booking['total'])) ?></strong>
+        </li>
+      </ul>
+      <?php if ($discount > 0) { ?>
+        <p class="saved">You saved <?= e(peso($discount)) ?> on this booking.</p>
+      <?php } ?>
     </div>
 
     <div class="success-actions">

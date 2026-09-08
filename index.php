@@ -1,28 +1,79 @@
 <?php
 require 'auth.php';
 require 'database/config.php';
+require_once 'helpers.php';
 
-// mga options sa dropdown ug filter pills
-$categories = ['All', 'Hatchback', 'Sedan', 'SUV', 'MPV'];
+/* mga lista gikan sa helpers.php */
+$categories = carCategories();
+$pickups    = pickupPoints();
+$ages       = ageBrackets();
 
-// kinahanglan pareho ni sa lista sa book.php ug function.php
-$pickups = ['Sibulan Airport', 'Rizal Boulevard', 'Valencia', 'Dauin', 'Bacong'];
-$ages    = ['21-24', '25-29', '30-64', '65+'];
-
-// numero nga i-call para sa mga pangutana
-$phone = '+63 912 345 6789';
-$phoneLink = 'tel:+639123456789';
-
-// mga branch nga makita sa locations strip, plain text para maka-trabaho ang e()
+/* branches sa locations strip */
 $branches = [
-  ['name' => 'Sibulan Airport', 'note' => 'Meet & greet at arrivals',  'img' => 'images/loc-sibulan.png'],
-  ['name' => 'Rizal Boulevard', 'note' => 'Dumaguete City seaside hub', 'img' => 'images/loc-rizal.png'],
-  ['name' => 'Valencia',        'note' => 'Highland pick-up point',     'img' => 'images/loc-valencia.png'],
-  ['name' => 'Dauin',           'note' => 'Dive-resort coast branch',   'img' => 'images/loc-dauin.png'],
-  ['name' => 'Bacong',          'note' => 'South coast pick-up point',  'img' => 'images/loc-bacong.png'],
+  ['name' => 'Sibulan Airport',           'note' => 'Meet & greet at arrivals',   'img' => 'images/loc-sibulan.png'],
+  ['name' => 'Rizal Boulevard, Dumaguete','note' => 'Dumaguete City seaside hub', 'img' => 'images/loc-rizal.png'],
+  ['name' => 'Valencia',                  'note' => 'Highland pick-up point',     'img' => 'images/loc-valencia.png'],
+  ['name' => 'Dauin',                     'note' => 'Dive-resort coast branch',   'img' => 'images/loc-dauin.png'],
+  ['name' => 'Bacong',                    'note' => 'South coast pick-up point',  'img' => 'images/loc-bacong.png'],
 ];
 
-// google reviews, unom para naa duha ka desktop page ang slider
+/* asa nga filter pill ang naka-on */
+$active = 'All';
+if (isset($_GET['category']) && in_array($_GET['category'], $categories, true)) {
+  $active = $_GET['category'];
+}
+
+/* gi-type sa user, para dili mawala human sa search */
+$q = [
+  'pickup_location' => $_GET['pickup_location'] ?? '',
+  'return_location' => $_GET['return_location'] ?? '',
+  'pickup_date'     => $_GET['pickup_date'] ?? '',
+  'return_date'     => $_GET['return_date'] ?? '',
+  'driver_age'      => $_GET['driver_age'] ?? '',
+  'discount_code'   => strtoupper(trim($_GET['discount_code'] ?? '')),
+  'delivery'        => isset($_GET['delivery']) ? '1' : '',
+];
+
+/* i-dala ang search paingon sa book.php */
+$trip   = array_filter($q, function ($v) { return $v !== ''; });
+$tripQs = $trip ? '&' . http_build_query($trip) : '';
+
+$pdo = getConnection();
+
+/* alias sa bag columns para dili usbon ang markup sa ubos */
+$cols = "id, name, type, price, gear, seats, doors,
+         bag_large AS bagL, bag_small AS bagS, kids, aircon, img";
+
+if ($active === 'All') {
+  $stmt = $pdo->prepare("SELECT $cols FROM cars WHERE available = 1 ORDER BY type, price");
+} else {
+  $stmt = $pdo->prepare("SELECT $cols FROM cars WHERE available = 1 AND type = :type ORDER BY price");
+  $stmt->bindValue(':type', $active);
+}
+
+$stmt->execute();
+$shown = $stmt->fetchAll();
+
+/* tinuod nga reviews, ang gi-hide sa admin dili apil */
+$liveReviews = $pdo->query(
+  "SELECT r.rating, r.review_text, r.created_at, u.full_name
+   FROM reviews r
+   JOIN users u ON u.id = r.user_id
+   WHERE r.approved = 1
+   ORDER BY r.created_at DESC
+   LIMIT 9"
+)->fetchAll();
+
+/* ihap ug average sa tinuod nga reviews */
+$rvStats = $pdo->query(
+  "SELECT COUNT(*) AS n, ROUND(AVG(rating), 1) AS avg_rating
+   FROM reviews WHERE approved = 1"
+)->fetch();
+
+$rvCount = (int)$rvStats['n'];
+$rvAvg   = $rvCount > 0 ? (float)$rvStats['avg_rating'] : 0;
+
+/* Google reviews, puli para dili mag-inusara ang carousel */
 $feedback = [
   ['name' => 'Miguel Torres', 'role' => 'Apo Island Weekender', 'when' => '2 weeks ago',
    'text' => 'The car was waiting for us right at Sibulan Airport arrivals, five minutes after landing we were already on the road to Dauin. Effortless from start to finish.'],
@@ -38,37 +89,62 @@ $feedback = [
    'text' => 'Rented the Swift for a Casaroro Falls run. Sharp handling on the climb and the tank was full. Returning it was just as painless as picking it up.'],
 ];
 
-// asa nga filter pill ang naka-on
-$active = 'All';
-if (isset($_GET['category']) && in_array($_GET['category'], $categories, true)) {
-  $active = $_GET['category'];
+/* 3 days ago, 2 weeks ago */
+function reviewAgo(string $ts): string {
+    $days = (int) floor((time() - strtotime($ts)) / 86400);
+
+    if ($days <= 0)  { return 'today'; }
+    if ($days === 1) { return 'yesterday'; }
+    if ($days < 7)   { return $days . ' days ago'; }
+    if ($days < 14)  { return 'last week'; }
+    if ($days < 60)  { return floor($days / 7) . ' weeks ago'; }
+
+    $months = floor($days / 30);
+    return $months . ' month' . ($months == 1 ? '' : 's') . ' ago';
 }
 
-$pdo = getConnection();
-
-/* i-alias ang bag_large/bag_small ngadto sa bagL/bagS
-   para dili na usbon ang markup sa car cards sa ubos */
-$cols = "id, name, type, price, gear, seats, doors,
-         bag_large AS bagL, bag_small AS bagS, kids, aircon, img";
-
-if ($active === 'All') {
-  $stmt = $pdo->prepare("SELECT $cols FROM cars WHERE available = 1 ORDER BY type, price");
-} else {
-  $stmt = $pdo->prepare("SELECT $cols FROM cars WHERE available = 1 AND type = :type ORDER BY price");
-  $stmt->bindValue(':type', $active);
+/* 4 -> ★★★★☆ */
+function reviewStars(int $rating): string {
+    return str_repeat('&#9733;', $rating) . str_repeat('&#9734;', 5 - $rating);
 }
 
-$stmt->execute();
-$shown = $stmt->fetchAll();
+/* tinuod una, unya Google puli hangtod unom ka card */
+$cards = [];
 
-// ---- diri na mo-sugod ang output ----
+foreach ($liveReviews as $note) {
+    $cards[] = [
+        'name'   => $note['full_name'],
+        'meta'   => 'Verified Renter · ' . reviewAgo($note['created_at']),
+        'rating' => (int)$note['rating'],
+        'text'   => $note['review_text'],
+        'google' => true,
+    ];
+}
+
+foreach ($feedback as $note) {
+    if (count($cards) >= 6) {
+        break;
+    }
+    $cards[] = [
+        'name'   => $note['name'],
+        'meta'   => $note['role'] . ' · ' . $note['when'],
+        'rating' => 5,
+        'text'   => $note['text'],
+        'google' => true,
+    ];
+}
+
+/* tinuod nga rating gisagol sa Google nga baseline */
+$blendCount = 1989 + $rvCount;
+$blendAvg   = round(((4.9 * 1989) + ($rvAvg * $rvCount)) / $blendCount, 1);
+
 $pageTitle = 'Shift Car Rental — Dumaguete City, Sibulan & Valencia';
 require 'header.php';
 ?>
 
 <main>
 
-<!-- hero, apil ang puti nga search box -->
+<!-- hero -->
 <section class="hero">
 
   <p class="reviews">
@@ -83,41 +159,37 @@ require 'header.php';
     before you pay anything.
   </p>
 
-  <form class="box" action="index.php" method="get">
+  <form class="box" action="vehicles.php" method="get">
 
     <div class="line">
       <div class="col">
         <label for="pickup-location">Pick-up Location</label>
         <select id="pickup-location" name="pickup_location">
-          <option>Select location</option>
+          <option value="">Select location</option>
           <?php foreach ($pickups as $place) { ?>
-            <option><?= e($place) ?></option>
+            <option value="<?= e($place) ?>"<?= $q['pickup_location'] === $place ? ' selected' : '' ?>><?= e($place) ?></option>
           <?php } ?>
         </select>
       </div>
       <div class="col">
         <label for="return-location">Return Location</label>
         <select id="return-location" name="return_location">
-          <option>Same as pick-up</option>
+          <option value="">Same as pick-up</option>
           <?php foreach ($pickups as $place) { ?>
-            <!-- parehas ra nga lista sa pick-up, para dili ko mag-edit duha ka lugar -->
-            <option><?= e($place) ?></option>
+            <option value="<?= e($place) ?>"<?= $q['return_location'] === $place ? ' selected' : '' ?>><?= e($place) ?></option>
           <?php } ?>
         </select>
       </div>
       <div class="col wide">
-        <label for="pickup-date">Pick-up Date &amp; Time</label>
-        <div class="pair">
-          <input type="date" id="pickup-date" name="pickup_date">
-          <input type="time" name="pickup_time" value="10:00" aria-label="Pick-up time">
-        </div>
+        <label for="pickup-date">Pick-up Date</label>
+        <input type="date" id="pickup-date" name="pickup_date"
+               min="<?= e(today()) ?>" value="<?= e($q['pickup_date']) ?>">
       </div>
       <div class="col wide">
-        <label for="return-date">Return Date &amp; Time</label>
-        <div class="pair">
-          <input type="date" id="return-date" name="return_date">
-          <input type="time" name="return_time" value="10:00" aria-label="Return time">
-        </div>
+        <label for="return-date">Return Date</label>
+        <input type="date" id="return-date" name="return_date"
+               min="<?= e($q['pickup_date'] !== '' ? $q['pickup_date'] : today()) ?>"
+               value="<?= e($q['return_date']) ?>">
       </div>
     </div>
 
@@ -133,14 +205,17 @@ require 'header.php';
       <div class="col">
         <label for="driver-age">Driver Age</label>
         <select id="driver-age" name="driver_age">
+          <option value="">Select age</option>
           <?php foreach ($ages as $bracket) { ?>
-            <option><?= e($bracket) ?></option>
+            <option value="<?= e($bracket) ?>"<?= $q['driver_age'] === $bracket ? ' selected' : '' ?>><?= e($bracket) ?></option>
           <?php } ?>
         </select>
       </div>
       <div class="col wide">
         <label for="discount-code">Discount Code</label>
-        <input type="text" id="discount-code" name="discount_code" placeholder="Optional">
+        <input type="text" id="discount-code" name="discount_code"
+               placeholder="Optional" maxlength="45"
+               value="<?= e($q['discount_code']) ?>">
       </div>
       <div class="col wide findcol">
         <button class="findbtn" type="submit">Find Your Car</button>
@@ -149,13 +224,15 @@ require 'header.php';
 
     <div class="bottom">
       <div>
-        <input type="checkbox" id="delivery" name="delivery">
+        <input type="checkbox" id="delivery" name="delivery" value="1"
+               <?= $q['delivery'] === '1' ? 'checked' : '' ?>>
         <label class="checkbox-label" for="delivery">Deliver the car to Sibulan Airport arrivals</label>
       </div>
       <div><a href="bookings.php">Already booked? <u>Manage your booking</u></a></div>
     </div>
 
   </form>
+
 </section>
 
 <!-- our vehicles -->
@@ -163,16 +240,14 @@ require 'header.php';
 
   <h2 class="vehicles-title">Our <span>Vehicles</span></h2>
 
-  <!-- filter pills, link ra ni balik sa parehas nga page -->
   <div class="filters">
     <?php foreach ($categories as $cat) { ?>
       <a class="filter-tab<?php if ($cat === $active) echo ' is-active'; ?>"
-         href="index.php?category=<?= urlencode($cat) ?>#our-vehicles"
+         href="index.php?category=<?= urlencode($cat) ?><?= $tripQs ?>#our-vehicles"
          <?php if ($cat === $active) echo 'aria-current="true"'; ?>><?= e($cat) ?></a>
     <?php } ?>
   </div>
 
-  <!-- arrow, tulo ka cards, arrow -->
   <div class="carousel" id="carCarousel" aria-roledescription="carousel" aria-label="Available vehicles">
 
     <button class="arrow" type="button" data-dir="prev" aria-label="Previous vehicles">&#8592;</button>
@@ -208,8 +283,7 @@ require 'header.php';
               <?php } ?>
             </div>
 
-            <!-- dala na ang car_id paingon sa booking form -->
-            <a class="book" href="book.php?car_id=<?= e($car['id']) ?>">
+            <a class="book" href="book.php?car_id=<?= (int) $car['id'] ?><?= $tripQs ?>">
               <span class="label">Book Now <span class="book-arrow" aria-hidden="true">&#8599;</span></span>
             </a>
 
@@ -227,7 +301,6 @@ require 'header.php';
 
   </div>
 
-  <!-- dots ra dinhi, ang arrows naa sa kilid sa cards -->
   <div class="controls" id="carControls">
     <div class="dots" id="carDots" aria-hidden="true"></div>
   </div>
@@ -252,7 +325,7 @@ require 'header.php';
         before pick-up.
       </p>
 
-      <a class="promo-btn" href="index.php#our-vehicles">Book Now <span aria-hidden="true">&#8599;</span></a>
+      <a class="promo-btn" href="deals.php">See the deals <span aria-hidden="true">&#8599;</span></a>
     </div>
 
     <div class="promo-photo">
@@ -273,7 +346,6 @@ require 'header.php';
   <div class="loc-grid">
     <?php foreach ($branches as $branch) { ?>
 
-      <!-- ang photo mo-fill sa tibuok card, ang ngalan naa sa ibabaw niini -->
       <article class="loc">
         <img src="<?= e($branch['img']) ?>" alt="<?= e($branch['name']) ?> pick-up point" loading="lazy">
 
@@ -291,16 +363,18 @@ require 'header.php';
 
 </section>
 
-<!-- recent reviews, parehas ra nga slider parts sa vehicles sa taas -->
+<!-- recent reviews -->
 <section class="reviews-sec" id="reviews">
 
   <div class="sec-head">
     <h2>Recent <span>Reviews</span></h2>
 
     <div class="rv-rating">
-      <span class="rv-big">4.9</span>
-      <span class="rv-stars" aria-label="4.9 out of 5 stars"><span aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span></span>
-      <span class="rv-count">from 1,989 Google reviews</span>
+      <span class="rv-big"><?= e(number_format($blendAvg, 1)) ?></span>
+      <span class="rv-stars" aria-label="<?= e($blendAvg) ?> out of 5 stars">
+        <span aria-hidden="true"><?= reviewStars((int)round($blendAvg)) ?></span>
+      </span>
+      <span class="rv-count">from <?= e(number_format($blendCount)) ?> reviews</span>
     </div>
   </div>
 
@@ -310,24 +384,25 @@ require 'header.php';
 
     <div class="slide-view">
       <div class="slide-row" id="rvRow">
-        <?php foreach ($feedback as $note) { ?>
+        <?php foreach ($cards as $note) { ?>
 
           <article class="rv">
 
             <div class="rv-who">
-              <!-- unang letra sa ngalan, puli sa profile photo -->
               <span class="rv-initial" aria-hidden="true"><?= e(strtoupper(substr($note['name'], 0, 1))) ?></span>
 
               <div class="rv-name">
                 <h3><?= e($note['name']) ?><span class="rv-check" title="Verified renter">&#10003;</span></h3>
-                <p><?= e($note['role']) ?> &middot; <?= e($note['when']) ?></p>
+                <p><?= e($note['meta']) ?></p>
               </div>
 
-              <span class="rv-g" role="img" aria-label="Google review"><?= googleMark() ?></span>
+              <?php if ($note['google']) { ?>
+                <span class="rv-g" role="img" aria-label="Google review"><?= googleMark() ?></span>
+              <?php } ?>
             </div>
 
-            <p class="rv-stars" aria-label="5 out of 5 stars">
-              <span aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            <p class="rv-stars" aria-label="<?= e($note['rating']) ?> out of 5 stars">
+              <span aria-hidden="true"><?= reviewStars($note['rating']) ?></span>
             </p>
 
             <p class="rv-text">&ldquo;<?= e($note['text']) ?>&rdquo;</p>
@@ -346,8 +421,7 @@ require 'header.php';
     <div class="dots" id="rvDots" aria-hidden="true"></div>
   </div>
 
-  <!-- plain text ra, walay link paingon maps -->
-  <p class="rv-more">&amp; 1,900+ more <span>Google reviews</span></p>
+  <p class="rv-more"><a href="reviews.php">Read all reviews <span>&amp; write your own</span></a></p>
 
 </section>
 

@@ -1,34 +1,51 @@
 <?php
 require 'auth.php';
-require 'helpers.php';
+require 'database/config.php';
+require_once 'helpers.php';
 
-// mga promo nga makita sa page, plain array para sayon usbon
-$deals = [
-  [
-    'tag'   => 'Early Bird',
-    'title' => 'Book 7 days ahead, save 10%',
-    'desc'  => 'Reserve any unit at least one week before your pick-up date and we knock 10% off the daily rate. Applies to all categories.',
-    'code'  => 'EARLY10',
-  ],
-  [
-    'tag'   => 'Long Trip',
-    'title' => '7+ days: 1 day free',
-    'desc'  => 'Rent for seven days or more and the seventh day is on us. Perfect for island loops down to Apo Island jump-offs and up to Twin Lakes.',
-    'code'  => 'WEEKFREE',
-  ],
-  [
-    'tag'   => 'Airport',
-    'title' => 'Free Sibulan Airport meet & greet',
-    'desc'  => 'Airport pick-up service is free on all bookings — our agent meets you at arrivals so you skip the taxi line entirely.',
-    'code'  => 'No code needed',
-  ],
-  [
-    'tag'   => 'Local',
-    'title' => 'Negros Oriental resident discount',
-    'desc'  => 'Show a valid ID with a Negros Oriental address at pick-up and get 5% off. Can be combined with the early bird promo.',
-    'code'  => 'LOCAL5',
-  ],
-];
+$pdo = getConnection();
+
+// gikan na sa promos table, dili na hardcoded — usa ra ka source of truth
+$stmt = $pdo->prepare(
+  "SELECT code, tag, title, blurb, percent, free_days,
+          min_days, min_advance_days, stackable, expires_at
+   FROM promos
+   WHERE active = 1 AND (expires_at IS NULL OR expires_at >= CURDATE())
+   ORDER BY sort_order, id"
+);
+$stmt->execute();
+$deals = $stmt->fetchAll();
+
+/* ---------- ang mga kondisyon, gikan sa parehong columns nga
+             gi-check sa promoIssues() — dili manual nga sulat ---------- */
+function dealTerms(array $d): array
+{
+  $terms = [];
+
+  if ((int) $d['percent'] > 0) {
+    $terms[] = (int) $d['percent'] . '% off the daily rate';
+  }
+  if ((int) $d['free_days'] > 0) {
+    $n = (int) $d['free_days'];
+    $terms[] = $n . ' free day' . ($n > 1 ? 's' : '');
+  }
+  if ((int) $d['min_days'] > 0) {
+    $terms[] = 'Minimum ' . (int) $d['min_days'] . ' days';
+  }
+  if ((int) $d['min_advance_days'] > 0) {
+    $terms[] = 'Book ' . (int) $d['min_advance_days'] . '+ days ahead';
+  }
+  if ($d['code'] !== null && $d['code'] !== '') {
+    $terms[] = (int) $d['stackable']
+      ? 'Can be combined with other stackable codes'
+      : 'Cannot be combined with other codes';
+  }
+  if (!empty($d['expires_at'])) {
+    $terms[] = 'Until ' . date('M j, Y', strtotime($d['expires_at']));
+  }
+
+  return $terms;
+}
 
 $pageTitle = 'Deals & Promos — Shift Car Rental';
 require 'header.php';
@@ -43,15 +60,40 @@ require 'header.php';
 
   <section class="deals-grid" id="deal-list">
     <?php foreach ($deals as $deal) { ?>
+      <?php $terms = dealTerms($deal); ?>
 
       <article class="deal-card">
         <span class="car-tag"><?= e($deal['tag']) ?></span>
         <h2><?= e($deal['title']) ?></h2>
-        <p><?= e($deal['desc']) ?></p>
-        <p class="deal-code">Code: <strong><?= e($deal['code']) ?></strong></p>
-        <a class="promo-btn" href="index.php#our-vehicles">Use this deal <span aria-hidden="true">&#8599;</span></a>
+        <p><?= e($deal['blurb']) ?></p>
+
+        <?php if ($terms) { ?>
+          <ul class="deal-terms">
+            <?php foreach ($terms as $t) { ?>
+              <li><?= e($t) ?></li>
+            <?php } ?>
+          </ul>
+        <?php } ?>
+
+        <?php if ($deal['code'] !== null && $deal['code'] !== '') { ?>
+          <p class="deal-code">Code: <strong><?= e($deal['code']) ?></strong></p>
+          <!-- paingon sa vehicles.php para makita dayon kung applicable ba ang code -->
+          <a class="promo-btn"
+             href="vehicles.php?discount_code=<?= urlencode($deal['code']) ?>#all-vehicles">
+            Use this deal <span aria-hidden="true">&#8599;</span>
+          </a>
+        <?php } else { ?>
+          <p class="deal-code muted">No code needed — automatic on every booking</p>
+          <a class="promo-btn" href="vehicles.php#all-vehicles">
+            Browse vehicles <span aria-hidden="true">&#8599;</span>
+          </a>
+        <?php } ?>
       </article>
 
+    <?php } ?>
+
+    <?php if (count($deals) === 0) { ?>
+      <p class="no-cars">No active promos right now. Check back soon.</p>
     <?php } ?>
   </section>
 
@@ -73,7 +115,7 @@ require 'header.php';
           before pick-up.
         </p>
 
-        <a class="promo-btn" href="index.php#our-vehicles">Book Now <span aria-hidden="true">&#8599;</span></a>
+        <a class="promo-btn" href="vehicles.php#all-vehicles">Book Now <span aria-hidden="true">&#8599;</span></a>
       </div>
 
       <div class="promo-photo">

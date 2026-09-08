@@ -132,60 +132,142 @@
 
 })();
 
-/* ===== booking page: mo-kwenta sa total samtang mag-usab ang petsa ===== */
+/* ===== booking page: live total ===== */
 (function () {
-  const box = document.getElementById('book-total');
-  if (!box) return;                       // dili booking page, undang na
+  'use strict';
 
-  const rate     = Number(box.dataset.rate) || 0;
-  const delivFee = Number(box.dataset.delivery) || 0;
-  const amount   = document.getElementById('total-amount');
-  const pickup   = document.getElementById('pickup_date');
-  const ret      = document.getElementById('return_date');
-  const deliv    = document.querySelector('input[name="delivery"]');
+  const form = document.getElementById('bookForm');
+  if (!form) return;
 
-  /* linya sa ubos sa total nga mo-ingon pila ka adlaw */
-  const note = document.createElement('span');
-  note.className = 'book-days';
-  amount.parentNode.insertBefore(note, amount.nextSibling);
+  const rate     = Number(form.dataset.rate) || 0;
+  const delivFee = Number(form.dataset.delivery) || 0;
+
+  let promos = {};
+  try { promos = JSON.parse(form.dataset.promos || '{}'); } catch (err) { promos = {}; }
+
+  const pickup = document.getElementById('pickup_date');
+  const ret    = document.getElementById('return_date');
+  const code   = document.getElementById('discount_code');
+  const deliv  = form.querySelector('input[name="delivery"]');
+
+  const elDays  = document.getElementById('q-days');
+  const elSub   = document.getElementById('q-sub');
+  const elDisc  = document.getElementById('q-disc');
+  const elDel   = document.getElementById('q-del');
+  const rowDisc = document.getElementById('q-disc-row');
+  const rowDel  = document.getElementById('q-del-row');
+  const amount  = document.getElementById('total-amount');
+
+  if (!pickup || !ret || !amount) return;
+
+
+  const now0  = new Date();
+  const today = now0.getFullYear() + '-'
+              + String(now0.getMonth() + 1).padStart(2, '0') + '-'
+              + String(now0.getDate()).padStart(2, '0');
 
   function peso(n) {
-    return '\u20B1' + n.toLocaleString('en-PH');
+    return '\u20B1' + Math.round(n).toLocaleString('en-PH');
+  }
+
+  function ymd(d) {
+    return d.getFullYear() + '-'
+         + String(d.getMonth() + 1).padStart(2, '0') + '-'
+         + String(d.getDate()).padStart(2, '0');
+  }
+
+  function midnight(value) {
+    if (!value) return null;
+    const d = new Date(value + 'T00:00:00');
+    return isNaN(d) ? null : d;
+  }
+
+  /* ---------- same rules as quotePrice() in helpers.php ---------- */
+  function activeCodes(days, advance) {
+    if (!code || !code.value.trim()) return [];
+
+    const picked = code.value.toUpperCase()
+      .split(/[\s,+;]+/)
+      .filter(Boolean)
+      .filter(function (c, i, arr) { return arr.indexOf(c) === i; })
+      .slice(0, 2)
+      .map(function (c) {
+        return promos[c] ? Object.assign({ code: c }, promos[c]) : null;
+      });
+
+    if (picked.indexOf(null) !== -1) return [];
+
+    const blocked = picked.some(function (p) {
+      if (picked.length > 1 && !p.stackable) return true;
+      if (p.minDays > 0 && days > 0 && days < p.minDays) return true;
+      if (p.minAdv > 0 && advance < p.minAdv) return true;
+      return false;
+    });
+
+    return blocked ? [] : picked;
   }
 
   function recalc() {
-    const from = new Date(pickup.value);
-    const to   = new Date(ret.value);
+    const from = midnight(pickup.value);
+    const to   = midnight(ret.value);
+    const now  = midnight(today);
 
-    /* invalid o baliktad ang petsa, i-zero lang */
-    if (!pickup.value || !ret.value || isNaN(from) || isNaN(to) || to <= from) {
-      amount.textContent = peso(0);
-      note.textContent   = '';
-      return;
+    let days = 0;
+    if (from && to && to > from) {
+      days = Math.round((to - from) / 86400000);
     }
 
-    const ms   = to - from;
-    const days = Math.round(ms / 86400000);   // 86400000 ms = usa ka adlaw
-    let total  = days * rate;
-    if (deliv && deliv.checked) total += delivFee;
+    const advance = from ? Math.round((from - now) / 86400000) : -1;
+    const live    = activeCodes(days, advance);
 
-    amount.textContent = peso(total);
-    note.textContent   = days + (days === 1 ? ' day' : ' days') + ' \u00D7 ' + peso(rate);
+    let billable = days;
+    let free = 0;
+    live.forEach(function (p) { free += p.freeDays; });
+    if (free > 0 && days > 1) {
+      billable = days - Math.min(free, days - 1);
+    }
+
+    const sub = rate * billable;
+
+    let pct = 0;
+    live.forEach(function (p) { pct += p.percent; });
+    if (pct > 50) pct = 50;
+    const disc = Math.round(sub * pct / 100);
+
+    const del = (deliv && deliv.checked) ? delivFee : 0;
+
+    if (elDays) elDays.textContent = billable + (billable === 1 ? ' day' : ' days');
+    if (elSub)  elSub.textContent  = peso(sub);
+    if (elDisc) elDisc.textContent = '\u2212' + peso(disc);
+    if (elDel)  elDel.textContent  = peso(del);
+
+    if (rowDisc) rowDisc.hidden = disc === 0;
+    if (rowDel)  rowDel.hidden  = del === 0;
+
+    amount.textContent = peso(Math.max(0, sub - disc) + del);
   }
 
-  /* dili pwede mag-pili ug petsa nga lumabay na */
-  const today = new Date().toISOString().slice(0, 10);
+  /* ---------- date guards ---------- */
   pickup.min = today;
-  ret.min    = today;
+  if (!ret.min) ret.min = today;
 
-  /* kung mausab ang pickup, ang return dili pwede mas sayo pa niini */
   pickup.addEventListener('change', function () {
     ret.min = pickup.value || today;
+
+    if (pickup.value && ret.value && ret.value <= pickup.value) {
+      const next = midnight(pickup.value);
+      next.setDate(next.getDate() + 1);
+      ret.value = ymd(next);
+    }
     recalc();
   });
 
   ret.addEventListener('change', recalc);
   if (deliv) deliv.addEventListener('change', recalc);
+  if (code) {
+    code.addEventListener('input', recalc);
+    code.addEventListener('change', recalc);
+  }
 
-  recalc();   // sa pag-load, basin naay daan nga input
+  recalc();
 })();

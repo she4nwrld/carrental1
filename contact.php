@@ -2,6 +2,7 @@
 require 'auth.php';
 require 'helpers.php';
 require 'validation.php';
+require 'database/config.php';
 
 $errors = [];
 $sent   = false;
@@ -30,10 +31,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ]));
 
     if (empty($errors)) {
-        /* walay mail server sa sandbox, so i-log nalang sa file —
-           ilisan ug mail() o PHPMailer kung naa nay SMTP */
-        $line = date('Y-m-d H:i:s') . " | $name | $email | $phone | " . str_replace(["\r", "\n"], ' ', $message) . PHP_EOL;
-        @file_put_contents(__DIR__ . '/database/messages.log', $line, FILE_APPEND | LOCK_EX);
+
+        // kinsa ang nagpadala, kung naka-login
+        $uid = null;
+        if (isLoggedIn()) {
+            if (function_exists('currentUserId')) {
+                $uid = currentUserId();
+            } else {
+                $uid = $_SESSION['user_id'] ?? null;
+            }
+        }
+
+        // sulod sa database para mabasa sa admin inbox
+        $pdo  = getConnection();
+        $stmt = $pdo->prepare(
+            "INSERT INTO messages (user_id, name, email, phone, body)
+             VALUES (:uid, :name, :email, :phone, :body)"
+        );
+        $stmt->execute([
+            ':uid'   => $uid,
+            ':name'  => $name,
+            ':email' => $email,
+            ':phone' => $phone === '' ? null : $phone,
+            ':body'  => $message,
+        ]);
 
         $sent = true;
         $old  = ['name' => '', 'email' => '', 'phone' => '', 'message' => ''];

@@ -1,12 +1,10 @@
 <?php
 
-// shortcut lang ni para dili ko mag-type ug htmlspecialchars kada higayon
 function e($text): string
 {
     return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
 }
 
-// google mark, gisulat usa ka beses lang instead nga unom ka beses sa markup
 function googleMark(): string
 {
     return '<svg viewBox="0 0 48 48" aria-hidden="true">'
@@ -17,7 +15,6 @@ function googleMark(): string
         . '</svg>';
 }
 
-// mga shape sa icon para sa spec rows, gibutang dinhi para mubo ra ang markup sa card
 function specIcons(): array
 {
     return [
@@ -31,7 +28,6 @@ function specIcons(): array
     ];
 }
 
-// gi-wrap ang usa ka shape sulod sa svg, para usa ra ka pagsulat niini
 function spec(string $key, string $text): string
 {
     $icons = specIcons();
@@ -40,4 +36,269 @@ function spec(string $key, string $text): string
     return '<span><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
         . 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' . $icons[$key] . '</svg></span>'
         . '<span class="txt">' . e($text) . '</span></span>';
+}
+
+function lookupPromo(PDO $pdo, string $code, int $days = 0, string $pickup = '')
+{
+    $code = strtoupper(trim($code));
+    if ($code === '') return null;
+
+    $stmt = $pdo->prepare(
+        "SELECT code, title, percent, free_days, min_days, min_advance_days
+         FROM promos
+         WHERE code = :code AND active = 1
+           AND (expires_at IS NULL OR expires_at >= CURDATE())"
+    );
+
+    $stmt->execute([':code' => $code]);
+
+    $promo = $stmt->fetch();
+    if (!$promo) return null;
+
+    if ($promo['min_days'] > 0 && $days < $promo['min_days']) {
+        return null;
+    }
+
+    if ($promo['min_advance_days'] > 0 && $pickup !== '') {
+        $daysAhead = (strtotime($pickup) - strtotime(date('Y-m-d'))) / 86400;
+        if ($daysAhead < $promo['min_advance_days']) {
+            return null;
+        }
+    }
+
+    return $promo;
+}
+
+
+/* BOOKING HELPERS */
+
+function carCategories(): array
+{
+    return ['All', 'Hatchback', 'Sedan', 'SUV', 'MPV'];
+}
+
+function pickupPoints(): array
+{
+    return ['Rizal Boulevard, Dumaguete', 'Sibulan Airport', 'Valencia', 'Bacong', 'Dauin'];
+}
+
+function ageBrackets(): array
+{
+    return ['21-24', '25-29', '30-64', '65+'];
+}
+
+function deliveryFee(): int
+{
+    return 500;
+}
+
+function peso($amount): string
+{
+    return '₱' . number_format((float) $amount, 0);
+}
+
+function locationImage(string $place): string
+{
+    $first = explode(' ', trim($place))[0];
+    $slug  = strtolower(preg_replace('/[^a-z]/i', '', $first));
+    return 'images/loc-' . $slug . '.png';
+}
+
+
+/* DATES */
+
+function isYmd($value): bool
+{
+    if (!is_string($value) || $value === '') return false;
+    $d = DateTime::createFromFormat('Y-m-d', $value);
+    return $d && $d->format('Y-m-d') === $value;
+}
+
+function today(): string
+{
+    return (new DateTime('today'))->format('Y-m-d');
+}
+
+function tripDays($pickup, $return): int
+{
+    if (!isYmd($pickup) || !isYmd($return)) return 0;
+
+    $a = new DateTime($pickup . ' 00:00:00');
+    $b = new DateTime($return . ' 00:00:00');
+    if ($b <= $a) return 0;
+
+    return (int) $a->diff($b)->days;
+}
+
+function daysUntil($date): int
+{
+    if (!isYmd($date)) return -1;
+
+    $a    = new DateTime('today');
+    $b    = new DateTime($date . ' 00:00:00');
+    $diff = (int) $a->diff($b)->days;
+
+    return $b < $a ? -$diff : $diff;
+}
+
+
+/* PROMO CODES */
+
+function findPromos(PDO $pdo, ?string $raw): array
+{
+    $out = ['promos' => [], 'unknown' => []];
+
+    $raw = trim((string) $raw);
+    if ($raw === '') return $out;
+
+    $codes = preg_split('/[\s,+;]+/', strtoupper($raw), -1, PREG_SPLIT_NO_EMPTY);
+    $codes = array_values(array_slice(array_unique($codes), 0, 2));
+    if (!$codes) return $out;
+
+    $in   = implode(',', array_fill(0, count($codes), '?'));
+    $stmt = $pdo->prepare(
+        "SELECT * FROM promos
+         WHERE code IN ($in) AND active = 1
+           AND (expires_at IS NULL OR expires_at >= CURDATE())"
+    );
+    $stmt->execute($codes);
+    $rows = $stmt->fetchAll();
+
+    $found = array_column($rows, 'code');
+    foreach ($codes as $c) {
+        if (!in_array($c, $found, true)) {
+            $out['unknown'][] = $c;
+        }
+    }
+
+    $out['promos'] = $rows;
+    return $out;
+}
+
+function promoIssues(array $promos, int $days, ?string $pickup): array
+{
+    $msgs = [];
+
+    if (count($promos) > 1) {
+        foreach ($promos as $p) {
+            if (!(int) $p['stackable']) {
+                $msgs[] = "Code {$p['code']} cannot be combined with other promo codes.";
+            }
+        }
+    }
+
+    foreach ($promos as $p) {
+        $min = (int) $p['min_days'];
+        if ($min > 0 && $days > 0 && $days < $min) {
+            $msgs[] = "Code {$p['code']} needs a rental of at least {$min} days "
+                    . "(your dates cover {$days}).";
+        }
+
+        $adv = (int) $p['min_advance_days'];
+        if ($adv > 0 && $pickup && isYmd($pickup) && daysUntil($pickup) < $adv) {
+            $msgs[] = "Code {$p['code']} must be booked at least {$adv} days before pick-up.";
+        }
+    }
+
+    return array_values(array_unique($msgs));
+}
+
+function quotePrice(array $promos, int $rate, int $days, bool $delivery, ?string $pickup = null): array
+{
+    $q = [
+        'days'          => $days,
+        'billable_days' => $days,
+        'subtotal'      => 0,
+        'discount'      => 0,
+        'delivery'      => $delivery ? deliveryFee() : 0,
+        'total'         => 0,
+        'notes'         => [],
+        'errors'        => promoIssues($promos, $days, $pickup),
+        'applied'       => [],
+    ];
+
+    if ($days < 1) return $q;
+
+    $usable = $q['errors'] ? [] : $promos;
+
+    $free = 0;
+    foreach ($usable as $p) {
+        $free += (int) $p['free_days'];
+    }
+    if ($free > 0) {
+        $free = min($free, $days - 1);
+        $q['billable_days'] = $days - $free;
+        $q['notes'][] = $free . ' free day' . ($free > 1 ? 's' : '') . ' applied';
+    }
+
+    $q['subtotal'] = $rate * $q['billable_days'];
+
+    $pct = 0;
+    foreach ($usable as $p) {
+        $pct += (int) $p['percent'];
+    }
+    if ($pct > 0) {
+        $pct = min($pct, 50);
+        $q['discount'] = (int) round($q['subtotal'] * $pct / 100);
+        $q['notes'][]  = $pct . '% off';
+    }
+
+    foreach ($usable as $p) {
+        $q['applied'][] = $p['code'];
+    }
+
+    $q['total'] = max(0, $q['subtotal'] - $q['discount']) + $q['delivery'];
+    return $q;
+}
+
+function promoJson(PDO $pdo): string
+{
+    $rows = $pdo->query(
+        "SELECT code, percent, free_days, min_days, min_advance_days, stackable
+         FROM promos
+         WHERE active = 1 AND code IS NOT NULL
+           AND (expires_at IS NULL OR expires_at >= CURDATE())"
+    )->fetchAll();
+
+    $map = [];
+    foreach ($rows as $r) {
+        $map[$r['code']] = [
+            'percent'   => (int) $r['percent'],
+            'freeDays'  => (int) $r['free_days'],
+            'minDays'   => (int) $r['min_days'],
+            'minAdv'    => (int) $r['min_advance_days'],
+            'stackable' => (bool) (int) $r['stackable'],
+        ];
+    }
+
+    return json_encode($map, JSON_UNESCAPED_UNICODE);
+}
+
+
+/* AVAILABILITY */
+
+function carIsFree(PDO $pdo, int $carId, string $pickup, string $return, ?int $ignoreBookingId = null, bool $lock = false): bool
+{
+    if (!isYmd($pickup) || !isYmd($return)) return false;
+
+    $sql = "SELECT COUNT(*) FROM bookings
+            WHERE car_id = ?
+              AND status IN ('pending','confirmed')
+              AND pickup_date < ?
+              AND return_date > ?";
+    $args = [$carId, $return, $pickup];
+
+    if ($ignoreBookingId) {
+        $sql   .= " AND id <> ?";
+        $args[] = $ignoreBookingId;
+    }
+
+    if ($lock) {
+        $sql .= " FOR UPDATE";
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($args);
+
+    return (int) $stmt->fetchColumn() === 0;
 }
