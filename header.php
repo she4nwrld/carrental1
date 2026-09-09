@@ -13,6 +13,9 @@ $base = $base ?? '';
 $logo    = 'images/shift-logo.png';
 $hasLogo = file_exists(__DIR__ . '/' . $logo);
 
+// lahi ni sa wordmark — square nga "S" ra, para klaro sa browser tab
+$favicon = 'images/shift-mark.png';
+
 // filemtime para dili mo-cache ang browser sa daan nga css
 $cssFile    = 'css/style.css';
 $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . $cssFile) : 1;
@@ -23,6 +26,8 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($pageTitle) ?></title>
+<link rel="icon" type="image/png" href="<?= e($base . $favicon) ?>?v=2">
+<link rel="apple-touch-icon" href="<?= e($base . $favicon) ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
@@ -30,6 +35,9 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 </head>
 
 <body>
+
+<!-- para sa keyboard users, mo-laktaw sa tibuok nav -->
+<a class="skip-link" href="#main-content">Skip to main content</a>
 
 <header class="topbar">
   <div class="brand">
@@ -42,7 +50,7 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
     </a>
   </div>
 
-  <nav class="menu" aria-label="Main navigation">
+  <nav class="menu" id="main-menu" aria-label="Main navigation">
     <a href="<?= e($base) ?>index.php">Home</a>
     <a href="<?= e($base) ?>vehicles.php">Vehicles</a>
     <a href="<?= e($base) ?>locations.php">Locations</a>
@@ -50,15 +58,31 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
     <a href="<?= e($base) ?>reviews.php">Reviews</a>
     <a href="<?= e($base) ?>faqs.php">FAQs</a>
     <a href="<?= e($base) ?>contact.php">Contact Us</a>
+
+    <!-- makita ra ni sa gamay nga screen, kay gitago ang .right links didto -->
+    <span class="menu-auth">
+      <?php if (isLoggedIn()) { ?>
+        <?php if (isAdmin()) { ?>
+          <a href="<?= e($base) ?>admin/dashboard.php">Dashboard</a>
+        <?php } ?>
+        <a href="<?= e($base) ?>profile.php">My Profile</a>
+        <a href="<?= e($base) ?>bookings.php">My Bookings</a>
+        <a href="<?= e($base) ?>logout.php">Log Out</a>
+      <?php } else { ?>
+        <a href="<?= e($base) ?>login.php">Log In</a>
+        <a href="<?= e($base) ?>signup.php">Create Account</a>
+      <?php } ?>
+    </span>
   </nav>
 
   <div class="right">
     <?php if (isLoggedIn()) { ?>
 
-      <!-- naka-login: ngalan, mga booking, ug logout -->
+      <!-- naka-login: ngalan, profile, mga booking, ug logout -->
       <?php if (isAdmin()) { ?>
         <a href="<?= e($base) ?>admin/dashboard.php">Dashboard</a>
       <?php } ?>
+      <a href="<?= e($base) ?>profile.php">My Profile</a>
       <a href="<?= e($base) ?>bookings.php">My Bookings</a>
       <span class="greet">Hi, <?= e(currentUserName()) ?></span>
       <a class="bookbtn" href="<?= e($base) ?>logout.php">Log Out</a>
@@ -71,7 +95,47 @@ $cssVersion = file_exists(__DIR__ . '/' . $cssFile) ? filemtime(__DIR__ . '/' . 
 
     <?php } ?>
   </div>
+
+  <button type="button" class="nav-toggle" aria-expanded="false"
+          aria-controls="main-menu" aria-label="Toggle navigation menu">
+    <span></span><span></span><span></span>
+  </button>
 </header>
+
+<!-- target sa skip link, walay gilapdon so dili makaguba sa layout -->
+<span id="main-content" tabindex="-1"></span>
+
+<script>
+(function () {
+  var btn  = document.querySelector('.nav-toggle');
+  var menu = document.getElementById('main-menu');
+  if (!btn || !menu) return;
+
+  function close() {
+    menu.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  btn.addEventListener('click', function () {
+    var open = menu.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  /* mo-click sa gawas sa panel: sira */
+  document.addEventListener('click', function (e) {
+    if (!menu.classList.contains('is-open')) return;
+    if (menu.contains(e.target) || btn.contains(e.target)) return;
+    close();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+      close();
+      btn.focus();
+    }
+  });
+})();
+</script>
 
 <?php if (!isLoggedIn()) { ?>
 <!-- modal: mo-gawas kung guest mo-click sa Book Now kinahanglan mag-login o mag-create account una -->

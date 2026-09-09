@@ -634,7 +634,7 @@ body.adm h1, body.adm h2, body.adm h3, body.adm p { margin: 0; }
 
 .cust-row {
   display: grid;
-  grid-template-columns: 1.5fr 1.5fr 1.2fr .9fr .8fr;
+  grid-template-columns: 1.4fr 1.3fr 1fr .8fr .7fr 1.1fr;
   gap: 16px;
   align-items: center;
   padding: 14px 18px;
@@ -713,9 +713,10 @@ body.adm h1, body.adm h2, body.adm h3, body.adm p { margin: 0; }
 
 /* Narrow screens */
 @media (max-width: 1000px) {
-  .cust-row { grid-template-columns: 1.4fr 1.4fr 1fr .9fr; }
-  .cust-joined { display: none; }
+  .cust-row {   grid-template-columns: 1.3fr 1.2fr .9fr .7fr .6fr 1.6fr; }
+  .cust-spend { display: none; }
 }
+
 
 @media (max-width: 860px) {
   body.adm { flex-direction: column; }
@@ -877,3 +878,8 @@ body.adm h1, body.adm h2, body.adm h3, body.adm p { margin: 0; }
 .ad-card { margin-bottom: 12px; }
 /* Centre the sidebar logo */
 .adm-brand { justify-content: center; padding: 0 18px 24px; }
+/* Customer row actions */
+.cust-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cust-actions form { margin: 0; }
+.cust-actions .ad-btn { padding: 5px 10px; font-size: 11.5px; }
+.cust-off { background: #FAFBFC; opacity: .78; }

@@ -199,7 +199,7 @@ if ($action === 'save_review') {
     if ($text === '') {
         $errors[] = 'Please write a few words about your experience.';
     } elseif (mb_strlen($text) > 600) {
-        $errors[] = 'Review is too long — keep it under 600 characters.';
+        $errors[] = 'Review is too long  keep it under 600 characters.';
     }
 
     if (empty($errors)) {
@@ -244,6 +244,98 @@ if ($action === 'delete_review') {
     $stmt->execute();
 
     header('Location: reviews.php?deleted=1#customer-reviews');
+    exit;
+}
+
+/* ---------- update profile ---------- */
+if ($action === 'update_profile') {
+
+    $fullName = trim($_POST['full_name'] ?? '');
+    $email    = trim($_POST['email'] ?? '');
+    $phone    = trim($_POST['phone'] ?? '');
+
+    $old = ['full_name' => $fullName, 'email' => $email, 'phone' => $phone];
+
+    $errors = array_values(array_filter([
+        validateRequired($fullName, 'Full name'),
+        validateMaxLength($fullName, 'Full name', 100),
+        validateRequired($email, 'Email'),
+        $email !== '' ? validateEmailFormat($email) : null,
+        validateRequired($phone, 'Mobile number'),
+        $phone !== '' ? validatePhone($phone) : null,
+    ]));
+
+    /* gi-query ra kung sakto na ang format */
+    if (empty($errors) && emailTakenByOther($pdo, $email, currentUserId())) {
+        $errors[] = 'That email address is already used by another account.';
+    }
+
+    if (!empty($errors)) {
+        $_SESSION['profile_errors'] = $errors;
+        $_SESSION['profile_old']    = $old;
+        header('Location: profile.php');
+        exit;
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE users SET full_name = :name, email = :email, phone = :phone
+         WHERE id = :id"
+    );
+    $stmt->bindValue(':name',  $fullName);
+    $stmt->bindValue(':email', $email);
+    $stmt->bindValue(':phone', $phone);
+    $stmt->bindValue(':id',    currentUserId(), PDO::PARAM_INT);
+    $stmt->execute();
+
+    /* ang header nag-gamit sa session name, i-update pod para dili maglahi */
+    $_SESSION['user_name'] = $fullName;
+
+    header('Location: profile.php?saved=1');
+    exit;
+}
+
+/* ---------- change password ---------- */
+if ($action === 'change_password') {
+
+    $current = $_POST['current_password'] ?? '';
+    $new     = $_POST['new_password'] ?? '';
+    $confirm = $_POST['confirm_password'] ?? '';
+
+    $errors = array_values(array_filter([
+        validateRequired($current, 'Current password'),
+        validateRequired($new, 'New password'),
+        $new !== '' ? validatePassword($new) : null,
+        validatePasswordMatch($new, $confirm),
+    ]));
+
+    if (empty($errors)) {
+        $stmt = $pdo->prepare("SELECT password FROM users WHERE id = :id");
+        $stmt->bindValue(':id', currentUserId(), PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch();
+
+        if (!$row || !password_verify($current, $row['password'])) {
+            $errors[] = 'That is not your current password.';
+        } elseif (password_verify($new, $row['password'])) {
+            $errors[] = 'Please choose a password different from your current one.';
+        }
+    }
+
+    if (!empty($errors)) {
+        $_SESSION['password_errors'] = $errors;
+        header('Location: profile.php');
+        exit;
+    }
+
+    $stmt = $pdo->prepare("UPDATE users SET password = :hash WHERE id = :id");
+    $stmt->bindValue(':hash', password_hash($new, PASSWORD_DEFAULT));
+    $stmt->bindValue(':id',   currentUserId(), PDO::PARAM_INT);
+    $stmt->execute();
+
+    /* bag-ong session id human mausab ang password */
+    session_regenerate_id(true);
+
+    header('Location: profile.php?password=1');
     exit;
 }
 

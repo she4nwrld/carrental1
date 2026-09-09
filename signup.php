@@ -1,5 +1,6 @@
 <?php
-session_start();
+// auth.php mao ang nag-set sa cookie params ug nag-start sa session
+require_once __DIR__ . '/auth.php';
 
 require 'database/config.php';
 require 'validation.php';
@@ -27,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // array_filter mo-tangtang sa tanan null, mabilin ra ang mga error
     $errors = array_values(array_filter([
         validateRequired($fullName, 'Full name'),
+        validateMaxLength($fullName, 'Full name', 100),
         validateEmailFormat($email),
         validatePhone($phone),
         validatePassword($password),
@@ -38,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "That email is already registered.";
     }
 }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
     try {
         // password_hash, dili plain text — walay makakita sa tinuod nga password
@@ -53,14 +56,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
         $stmt->bindValue(':password',  $hash);
         $stmt->execute();
 
+        // bag-ong session id una mo-login, panalipod sa session fixation
+        session_regenerate_id(true);
+
         // auto-login dayon human sa signup
         $_SESSION['user_id']   = (int) $pdo->lastInsertId();
         $_SESSION['user_name'] = $fullName;
         $_SESSION['role']      = 'customer';
+        $_SESSION['last_seen'] = time();
 
         header('Location: index.php?welcome=1');
         exit;
     } catch (PDOException $e) {
+        error_log('Signup failed: ' . $e->getMessage());
         $errors[] = "Could not create your account. Please try again.";
     }
 }
@@ -71,11 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Create an Account — Shift Car Rental</title>
+<link rel="icon" type="image/png" href="images/shift-mark.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/fixes.css">
 </head>
 
 <body class="auth-page">
@@ -112,12 +120,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
       </div>
     <?php } ?>
 
-        <form method="POST" action="signup.php" class="auth-form" novalidate>
+    <form method="POST" action="signup.php" class="auth-form" novalidate>
 
       <div class="auth-field">
         <label for="full_name">Full Name</label>
         <!-- value gikan sa $old, para dili mag-type balik kung naay sayop -->
-        <input type="text" id="full_name" name="full_name"
+        <input type="text" id="full_name" name="full_name" maxlength="100"
                value="<?= htmlspecialchars($old['full_name'], ENT_QUOTES, 'UTF-8') ?>"
                placeholder="Juan Dela Cruz" required>
       </div>
@@ -140,6 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
         <label for="password">Password</label>
         <!-- walay value dinhi, bawal i-repopulate ang password -->
         <input type="password" id="password" name="password"
+               autocomplete="new-password"
                placeholder="At least 8 characters" required>
         <small>Must be 8+ characters with a letter, a number and a special character (e.g. ! @ # $).</small>
       </div>
@@ -147,6 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
       <div class="auth-field">
         <label for="confirm_password">Confirm Password</label>
         <input type="password" id="confirm_password" name="confirm_password"
+               autocomplete="new-password"
                placeholder="Re-type your password" required>
       </div>
 

@@ -27,6 +27,15 @@ function validateInList(string $value, string $label, array $allowed): ?string
 {
     return in_array($value, $allowed, true) ? null : "Choose a valid $label.";
 }
+
+// dili pwede sobra sa gitakda nga gitas-on
+function validateMaxLength(string $value, string $label, int $max): ?string
+{
+    return mb_strlen(trim($value)) > $max
+        ? "$label must be $max characters or fewer."
+        : null;
+}
+
 function validatePassword(string $value): ?string
 {
     if (strlen($value) < 8) {
@@ -53,6 +62,16 @@ function emailTaken(PDO $pdo, string $email): bool
 {
     $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email");
     $stmt->bindValue(':email', $email);
+    $stmt->execute();
+    return $stmt->fetch() !== false;
+}
+
+// parehas sa emailTaken(), pero gilaktawan ang kaugalingong account
+function emailTakenByOther(PDO $pdo, string $email, int $userId): bool
+{
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id <> :id");
+    $stmt->bindValue(':email', $email);
+    $stmt->bindValue(':id', $userId, PDO::PARAM_INT);
     $stmt->execute();
     return $stmt->fetch() !== false;
 }

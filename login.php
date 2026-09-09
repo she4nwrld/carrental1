@@ -1,5 +1,6 @@
 <?php
-session_start();
+// auth.php mao ang nag-set sa cookie params ug nag-start sa session
+require_once __DIR__ . '/auth.php';
 
 require 'database/config.php';
 require 'validation.php';
@@ -12,6 +13,10 @@ if (isset($_SESSION['user_id'])) {
 
 $errors = [];
 $old    = ['email' => ''];
+
+// gikan sa inactivity timeout sa auth.php
+$timedOut = !empty($_SESSION['timed_out']);
+unset($_SESSION['timed_out']);
 
 // gikan sa requireLogin() o sa Book Now modal — asa mo-balik human sa login
 // gidawat ra ang relative path para walay open-redirect
@@ -34,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         $pdo = getConnection();
 
-        $sql  = "SELECT id, full_name, password, role FROM users WHERE email = :email";
+        $sql  = "SELECT id, full_name, password, role, is_active FROM users WHERE email = :email";
         $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':email', $email);
         $stmt->execute();
@@ -43,25 +48,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // password_verify mo-compare sa gi-type ug sa hash sa database
         if ($user && password_verify($password, $user['password'])) {
 
-            // bag-ong session id, panalipod sa session fixation
-            session_regenerate_id(true);
-
-            $_SESSION['user_id']   = (int) $user['id'];
-            $_SESSION['user_name'] = $user['full_name'];
-            $_SESSION['role']      = $user['role'];
-
-            // admin paingon sa dashboard, customer paingon sa next (kung naa) o sa home
-            if ($user['role'] === 'admin') {
-                $target = 'admin/dashboard.php';
+            // gi-check human sa password, para dili mabutyag kinsa naay account
+            if ((int) $user['is_active'] === 0) {
+                $errors[] = "This account has been disabled. Please contact us for help.";
             } else {
-                $target = $next !== '' ? $next : 'index.php';
+
+                // bag-ong session id, panalipod sa session fixation
+                session_regenerate_id(true);
+
+                $_SESSION['user_id']   = (int) $user['id'];
+                $_SESSION['user_name'] = $user['full_name'];
+                $_SESSION['role']      = $user['role'];
+                $_SESSION['last_seen'] = time();
+
+                // admin paingon sa dashboard, customer paingon sa next (kung naa) o sa home
+                if ($user['role'] === 'admin') {
+                    $target = 'admin/dashboard.php';
+                } else {
+                    $target = $next !== '' ? $next : 'index.php';
+                }
+                header('Location: ' . $target);
+                exit;
             }
-            header('Location: ' . $target);
-            exit;
         }
 
         // usa ra ka message bisan asa ang sayop, para dili mabutyag kinsa naay account
-        $errors[] = "Incorrect email or password.";
+        if (empty($errors)) {
+            $errors[] = "Incorrect email or password.";
+        }
     }
 }
 ?>
@@ -72,11 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Log In — Shift Car Rental</title>
+<link rel="icon" type="image/png" href="images/shift-mark.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/fixes.css">
 </head>
 
 <body class="auth-page">
@@ -101,6 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <h1>Welcome back</h1>
     <p class="auth-sub">Log in to manage your bookings.</p>
+
+    <?php if ($timedOut) { ?>
+      <div class="auth-errors" role="status">
+        <ul><li>You were logged out after 30 minutes of inactivity. Please log in again.</li></ul>
+      </div>
+    <?php } ?>
 
     <?php if (!empty($errors)) { ?>
       <div class="auth-errors" role="alert">
@@ -128,6 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="auth-field">
         <label for="password">Password</label>
         <input type="password" id="password" name="password"
+               autocomplete="current-password"
                placeholder="Your password" required>
       </div>
 
@@ -135,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     </form>
 
-    <p class="auth-alt">No account yet? <a href="signup.php">Create one</a></p>
+        <p class="auth-alt">No account yet? <a href="signup.php">Create one</a></p>
 
   </section>
 </main>

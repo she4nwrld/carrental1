@@ -571,5 +571,108 @@ if ($action === 'drop_message') {
     exit;
 }
 
+/* enable or disable a customer account */
+if ($action === 'toggle_customer') {
+
+    $userId = filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT);
+    $on     = ($_POST['is_active'] ?? '') === '1' ? 1 : 0;
+    $view   = $_POST['view'] ?? 'all';
+    $back   = 'customers.php?view=' . urlencode($view);
+
+    /* never touch your own row, even if the id is typed by hand */
+    if (!$userId || $userId === currentUserId()) {
+        header('Location: ' . $back . '&failed=1');
+        exit;
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE users SET is_active = :on WHERE id = :id AND role <> 'admin'"
+    );
+    $stmt->bindValue(':on', $on, PDO::PARAM_INT);
+    $stmt->bindValue(':id', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    if ($stmt->rowCount() === 0) {
+        header('Location: ' . $back . '&failed=1');
+        exit;
+    }
+
+    header('Location: ' . $back . ($on ? '&enabled=1' : '&disabled=1'));
+    exit;
+}
+
+/* delete a customer, only if they never booked anything */
+if ($action === 'drop_customer') {
+
+    $userId = filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT);
+    $view   = $_POST['view'] ?? 'all';
+    $back   = 'customers.php?view=' . urlencode($view);
+
+    if (!$userId || $userId === currentUserId()) {
+        header('Location: ' . $back . '&failed=1');
+        exit;
+    }
+
+    /* gitago ang button sa page, pero i-check gihapon diri */
+    $check = $pdo->prepare("SELECT COUNT(*) FROM bookings WHERE user_id = :id");
+    $check->bindValue(':id', $userId, PDO::PARAM_INT);
+    $check->execute();
+
+    if ((int)$check->fetchColumn() > 0) {
+        header('Location: ' . $back . '&inuse=1');
+        exit;
+    }
+
+    /* walay booking history, pero basin naay review */
+    $stmt = $pdo->prepare("DELETE FROM reviews WHERE user_id = :id");
+    $stmt->bindValue(':id', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $stmt = $pdo->prepare("DELETE FROM users WHERE id = :id AND role <> 'admin'");
+    $stmt->bindValue(':id', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    if ($stmt->rowCount() === 0) {
+        header('Location: ' . $back . '&failed=1');
+        exit;
+    }
+
+    header('Location: ' . $back . '&removed=1');
+    exit;
+}
+
+/* issue a temporary password for a customer who is locked out */
+if ($action === 'reset_customer') {
+
+    $userId = filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT);
+    $view   = $_POST['view'] ?? 'all';
+    $back   = 'customers.php?view=' . urlencode($view);
+
+    if (!$userId) {
+        header('Location: ' . $back . '&failed=1');
+        exit;
+    }
+
+    /* mo-pasar sa validatePassword(): letra, numero ug special character */
+    $temp = 'Shift' . random_int(1000, 9999) . '!';
+
+    $stmt = $pdo->prepare(
+        "UPDATE users SET password = :hash WHERE id = :id AND role <> 'admin'"
+    );
+    $stmt->bindValue(':hash', password_hash($temp, PASSWORD_DEFAULT));
+    $stmt->bindValue(':id',   $userId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    if ($stmt->rowCount() === 0) {
+        header('Location: ' . $back . '&failed=1');
+        exit;
+    }
+
+    /* gipakita kausa ra sa admin, wala gi-save nga plain text sa database */
+    $_SESSION['temp_password'] = $temp;
+    header('Location: ' . $back . '&reset=1');
+    exit;
+}
+
 header('Location: dashboard.php');
 exit;

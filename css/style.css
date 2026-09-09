@@ -897,10 +897,6 @@ html { scroll-behavior: smooth; }
   /* kinahanglan naa ni sulod sa selector, ang gawas nga declarations gilabay */
   :root { --gap: 18px; }
 
-  .topbar { flex-wrap: wrap; }
-  .menu { flex: 0 0 100%; order: 3; text-align: left; margin-top: 10px; }
-  .menu a { margin: 0 16px 0 0; font-size: 14px; }
-
   .hero { min-height: 0; }
   .hero h1 { font-size: 44px; }
 
@@ -2646,3 +2642,188 @@ html {
 }
 .rv-more a { color: inherit; text-decoration: none; }
 .rv-more a:hover { text-decoration: underline; }
+
+/* Profile page */
+.pf-wrap { max-width: 720px; margin: 0 auto; padding: 40px 20px 64px; }
+.pf-head h1 { margin: 0; font-size: 28px; letter-spacing: -.5px; }
+.pf-sub { margin-top: 6px; color: #6B7280; font-size: 14px; }
+
+.pf-flash {
+  margin: 20px 0 0;
+  padding: 11px 15px;
+  border: 1px solid #FDE68A;
+  border-left: 4px solid #FEB802;
+  border-radius: 8px;
+  background: #FFFBEB;
+  color: #7C4A03;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.pf-card {
+  margin-top: 22px;
+  padding: 24px;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.pf-card h2 { margin: 0 0 18px; font-size: 17px; font-weight: 600; }
+
+.pf-errors {
+  margin-bottom: 16px;
+  padding: 11px 15px;
+  border: 1px solid #FCA5A5;
+  border-radius: 8px;
+  background: #FEE2E2;
+  color: #B91C1C;
+  font-size: 13.5px;
+}
+
+.pf-errors ul { margin: 0; padding-left: 18px; }
+.pf-field { margin-bottom: 16px; }
+
+.pf-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.pf-field input {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #D8DCE3;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #131A2C;
+}
+
+.pf-field input:focus {
+  outline: none;
+  border-color: #131A2C;
+  box-shadow: 0 0 0 3px rgba(19, 26, 44, .08);
+}
+
+.pf-field small { display: block; margin-top: 5px; font-size: 12px; color: #9CA3AF; }
+
+.pf-btn {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #FEB802;
+  color: #131A2C;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pf-btn:hover { filter: brightness(.94); }
+.pf-back { margin-top: 22px; font-size: 14px; }
+.pf-back a { color: #6B7280; text-decoration: none; }
+.pf-back a:hover { color: #131A2C; }
+
+/* ===== skip link, keyboard users ra makakita ===== */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: -9999px;
+  z-index: 300;
+  padding: 10px 18px;
+  background: #131A2C;
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 0 0 8px 0;
+}
+
+.skip-link:focus { left: 0; }
+
+/* ===== hamburger toggle ===== */
+.nav-toggle {
+  display: none;              /* desktop: wala; mo-gawas sa media query */
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  margin-left: 14px;
+  padding: 0;
+  border: 1px solid #E6E8EC;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.nav-toggle:hover { border-color: #131A2C; }
+
+.nav-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  margin: 4px auto;
+  border-radius: 2px;
+  background: #131A2C;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+/* mahimong X kung abli */
+.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* ang auth links sulod sa panel, mobile ra */
+.menu-auth { display: none; }
+
+/* ===== mobile: ang nav mahimong dropdown panel ===== */
+@media (max-width: 980px) {
+  .topbar { position: relative; flex-wrap: nowrap; }
+
+  .nav-toggle { display: block; }
+
+  .menu {
+    display: none;              /* .is-open ang mo-abli */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 120;
+    flex: none;
+    margin: 0;
+    padding: 6px var(--side) 12px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 14px 30px rgba(19, 26, 44, .10);
+    text-align: left;
+  }
+
+  .menu.is-open { display: block; }
+
+  .menu a {
+    display: block;
+    margin: 0;
+    padding: 12px 2px;
+    font-size: 15px;
+    border-bottom: 1px solid #F1F3F5;
+  }
+
+  .menu-auth {
+    display: block;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid #E6E8EC;
+  }
+
+  .menu-auth a:last-child { border-bottom: 0; }
+}
+
+/* ===== gagmay nga phone: ang .right mabilin ra ang buton ===== */
+@media (max-width: 620px) {
+  .topbar { padding: 12px var(--side); }
+  .brand img { height: 30px; }
+  .right a:not(.bookbtn) { display: none; }   /* naa na sila sa panel */
+  .bookbtn { padding: 9px 16px; font-size: 13px; }
+}
