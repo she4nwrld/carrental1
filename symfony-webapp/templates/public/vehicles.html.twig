@@ -1,0 +1,109 @@
+{% extends 'public/base.html.twig' %}
+
+{% import 'public/_spec.html.twig' as ui %}
+
+{% block title %}Our Vehicles — Shift Car Rental{% endblock %}
+{% block main_class %}page-main{% endblock %}
+
+{% block body %}
+
+  <section class="page-hero" id="vehicles-hero">
+    <h1>Our <span>Vehicles</span></h1>
+    <p>Well-maintained Manual and Automatic units ready for Dumaguete, Sibulan, Valencia and around Negros Oriental.</p>
+  </section>
+
+  <section class="vehicles page-vehicles" id="all-vehicles">
+
+    {% if has_dates or q.pickup_location != '' or q.discount_code != '' or q.delivery == '1' %}
+      <div class="search-summary">
+        <p>
+          <strong>Showing cars for:</strong>
+          {% if q.pickup_location != '' %}{{ q.pickup_location }} &middot; {% endif %}
+          {% if has_dates %}
+            {{ q.pickup_date|date('M j') }} &ndash; {{ q.return_date|date('M j, Y') }} ({{ days }} {{ days == 1 ? 'day' : 'days' }})
+          {% else %}
+            any dates
+          {% endif %}
+          {% if promo_issues is empty and found.promos is not empty %}
+            {% for p in found.promos %}
+              &middot; <span class="sum-tag">{{ p.code }} &minus;{{ p.percent > 0 ? p.percent ~ '%' : p.free_days ~ ' free day' }}</span>
+            {% endfor %}
+          {% endif %}
+          {% if q.delivery == '1' %}
+            &middot; +&#8369;{{ delivery_fee|number_format }} delivery
+          {% endif %}
+        </p>
+        {% for msg in promo_issues %}
+          <p class="sum-warn">{{ msg }}</p>
+        {% endfor %}
+        <a href="{{ path('vehicles') }}">Clear search</a>
+      </div>
+    {% endif %}
+
+    <div class="filters">
+      {% for cat in categories %}
+        <a class="filter-tab{{ cat == active ? ' is-active' : '' }}"
+           href="{{ path('vehicles', {category: cat}) }}{{ trip_qs }}"
+           {{ cat == active ? 'aria-current="true"' : '' }}>{{ cat }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="cars-grid">
+      {% for car in cars %}
+
+        <article class="car">
+
+          <div class="car-photo">
+            <span class="car-tag">{{ car.type }}</span>
+            <img src="{{ asset(car.img) }}" alt="{{ car.name }}" loading="lazy">
+          </div>
+
+          <div class="car-top">
+            <h2>{{ car.name }}</h2>
+            <p class="car-price">
+              <span class="amount">&#8369;{{ car.price|number_format }}</span>
+              <span class="per">per day</span>
+            </p>
+          </div>
+
+          <div class="car-specs">
+            {{ ui.spec('passenger', car.seats ~ ' Passenger') }}
+            {{ ui.spec('doors',     car.doors ~ ' Doors') }}
+            {{ ui.spec('bagL',      car.bagL ~ ' Large Bags') }}
+            {{ ui.spec('bagS',      car.bagS ~ ' Small Bags') }}
+            {{ ui.spec('kids',      car.kids ~ ' Children') }}
+            {{ ui.spec('gear',      car.gear) }}
+            {% if car.aircon %}
+              {{ ui.spec('aircon', 'Airconditioning') }}
+            {% endif %}
+          </div>
+
+          {% if has_dates and car.quote is defined %}
+            <p class="car-quote">
+              {% if car.quote.discount > 0 or car.quote.free_days > 0 %}
+                <s class="was">&#8369;{{ (car.price * days + car.quote.delivery_fee)|number_format }}</s>
+              {% endif %}
+              <strong>&#8369;{{ car.quote.total|number_format }}</strong>
+              <span>total for {{ days }} {{ days == 1 ? 'day' : 'days' }}</span>
+            </p>
+          {% endif %}
+
+          <a class="book" href="{{ path('book', {car_id: car.id}) }}{{ trip_qs }}">
+            <span class="label">Book Now <span class="book-arrow" aria-hidden="true">&#8599;</span></span>
+          </a>
+
+        </article>
+
+      {% endfor %}
+
+      {% if cars is empty %}
+        <p class="no-cars">
+          No {{ active == 'All' ? '' : active ~ ' ' }}units are free for those dates.
+          <a href="{{ path('vehicles') }}">Show all dates</a>
+        </p>
+      {% endif %}
+    </div>
+
+  </section>
+
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Deals &amp; Promos — Shift Car Rental{% endblock %}
+{% block main_class %}page-main{% endblock %}
+
+{% block body %}
+
+  <section class="page-hero" id="deals-hero">
+    <h1>Special <span>Deals</span></h1>
+    <p>Promos and discount codes you can use on your Dumaguete rental.</p>
+  </section>
+
+  <section class="deals-grid" id="deal-list">
+    {% for deal in promos %}
+
+      <article class="deal-card">
+        <span class="deal-tag">{{ deal.tag }}</span>
+        <h2>{{ deal.title }}</h2>
+        <p>{{ deal.blurb }}</p>
+
+        <p class="deal-terms">{{ deal.terms }}</p>
+
+        {% if deal.code is not null and deal.code != '' %}
+          <p class="deal-code">Use code: <strong>{{ deal.code }}</strong></p>
+        {% else %}
+          <p class="deal-code deal-nocode">Applied automatically &mdash; no code needed</p>
+        {% endif %}
+
+        <a class="book" href="{{ deal.code ? path('vehicles', {discount_code: deal.code}) : path('vehicles') }}">
+          <span class="label">Claim this deal <span class="book-arrow" aria-hidden="true">&#8599;</span></span>
+        </a>
+      </article>
+
+    {% endfor %}
+  </section>
+
+  <!-- reuse ang promo banner gikan sa home -->
+  <section class="promo" id="promo">
+    <div class="promo-inner">
+      <div class="promo-text">
+        <p class="promo-eyebrow">Need a custom quote?</p>
+        <h2 class="promo-title">Renting for 2 weeks <span>or more?</span></h2>
+        <p class="promo-desc">
+          Message us with your dates and we will put together a monthly or long-stay rate for you.
+        </p>
+        <a class="promo-btn" href="{{ path('contact') }}">Ask for a quote <span aria-hidden="true">&#8599;</span></a>
+      </div>
+      <div class="promo-photo">
+        <img src="{{ asset('images/promo-bg.png') }}" alt="Coastline near Dumaguete City" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+{% endblock %}

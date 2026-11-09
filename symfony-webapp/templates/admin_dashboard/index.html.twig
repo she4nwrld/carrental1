@@ -1,0 +1,227 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bookings{% endblock %}
+{% block page_title %}Bookings{% endblock %}
+
+{% block page_head %}
+    <div class="list-head">
+        <h1>Every reservation</h1>
+        <p class="book-sub">All customers, overdue first.</p>
+    </div>
+{% endblock %}
+
+{% block body %}
+    {% if stats.overdue > 0 and filter != 'overdue' %}
+        <div class="flash flash-warn" role="status">
+            {{ stats.overdue }} booking{{ stats.overdue == 1 ? ' is' : 's are' }}
+            past the return date and still holding a car.
+            <a href="{{ path('admin_dashboard', {status: 'overdue'}) }}">Show them</a>
+        </div>
+    {% endif %}
+
+    <div class="stat-grid">
+        <div class="stat">
+            <span>Active bookings</span>
+            <strong>{{ stats.active|number_format }}</strong>
+            <em>{{ stats.cancelled|number_format }} cancelled</em>
+        </div>
+        <div class="stat">
+            <span>Awaiting action</span>
+            <strong>{{ stats.pending|number_format }}</strong>
+        </div>
+        <div class="stat{{ stats.overdue > 0 ? ' stat-warn' : '' }}">
+            <span>Overdue</span>
+            <strong>{{ stats.overdue|number_format }}</strong>
+            <em>past return date</em>
+        </div>
+        <div class="stat">
+            <span>Confirmed</span>
+            <strong>{{ stats.confirmed|number_format }}</strong>
+            <em>{{ stats.completed|number_format }} completed</em>
+        </div>
+        <div class="stat">
+            <span>Booked revenue</span>
+            <strong>&#8369;{{ stats.revenue|number_format }}</strong>
+            <em>confirmed + completed</em>
+        </div>
+    </div>
+
+    <div class="filters admin-filters">
+        {% for st in statuses %}
+            <a class="filter-tab{{ st == filter ? ' is-active' : '' }}{{ st == 'overdue' and stats.overdue > 0 ? ' tab-warn' : '' }}"
+               href="{{ path('admin_dashboard', {status: st}) }}">{{ st|capitalize }}</a>
+        {% endfor %}
+    </div>
+
+    {% if bookings is empty %}
+
+        <div class="list-empty">
+            <p>No {{ filter == 'all' ? '' : filter ~ ' ' }}bookings to show.</p>
+        </div>
+
+    {% else %}
+
+        {% for bk in bookings %}
+            {% set is_late = bk.status == 'confirmed' and bk.return_date < today %}
+            {% set days_late = is_late ? date(today).diff(date(bk.return_date)).days : 0 %}
+
+            <article class="ad-card{{ is_late ? ' bk-late' : '' }}">
+
+                <div class="ad-photo">
+                    <img src="{{ asset(bk.car_img) }}" alt="{{ bk.car_name }}" loading="lazy">
+                </div>
+
+                <div class="ad-body">
+
+                    <div class="bk-top">
+                        <div>
+                            <h2>{{ bk.car_name }}</h2>
+                            <p class="bk-ref">SHIFT-{{ '%04d'|format(bk.id) }}</p>
+                        </div>
+                        {% if is_late %}
+                            <span class="pill pill-overdue">Overdue</span>
+                        {% else %}
+                            <span class="pill pill-{{ bk.status }}">{{ bk.status|capitalize }}</span>
+                        {% endif %}
+                    </div>
+
+                    {# who booked it #}
+                    <div class="ad-customer">
+                        <strong>{{ bk.full_name }}</strong>
+                        <a href="mailto:{{ bk.email }}">{{ bk.email }}</a>
+                        <a href="tel:{{ bk.phone }}">{{ bk.phone }}</a>
+                    </div>
+
+                    {% if is_late %}
+                        <p class="bk-late-note">
+                            Due back {{ bk.return_date|date('M j, Y') }} &mdash;
+                            {{ days_late }} day{{ days_late == 1 ? '' : 's' }} ago.
+                            The car stays booked until this is closed off.
+                        </p>
+                    {% endif %}
+
+                    <div class="bk-grid">
+                        <div><span>Pick-up</span><strong>{{ bk.pickup_date|date('M j, Y') }}</strong><em>{{ bk.pickup_location }}</em></div>
+                        <div><span>Return</span><strong>{{ bk.return_date|date('M j, Y') }}</strong><em>{{ bk.return_location }}</em></div>
+                        <div><span>Driver / days</span><strong>{{ bk.driver_age }}</strong><em>{{ bk.days }} {{ bk.days == 1 ? 'day' : 'days' }}{{ bk.delivery ? ' · delivery' : '' }}</em></div>
+                        <div><span>Total</span><strong>&#8369;{{ bk.total|number_format }}</strong><em>
+                            {%- if bk.status == 'completed' -%}
+                                Paid
+                            {%- elseif bk.status == 'cancelled' -%}
+                                Not charged
+                            {%- else -%}
+                                Due on pick-up
+                            {%- endif -%}
+                        </em></div>
+                    </div>
+
+                    {% if bk.discount > 0 %}
+                        <p class="ad-disc">
+                            Subtotal &#8369;{{ bk.subtotal|number_format }}
+                            &middot; {{ bk.discount_code }} &minus;&#8369;{{ bk.discount|number_format }}
+                        </p>
+                    {% endif %}
+
+                    <details class="adm-edit">
+                        <summary>Edit booking</summary>
+
+                        <form method="POST" action="{{ path('admin_dashboard', {status: filter}) }}" class="car-form wide">
+                            <input type="hidden" name="action" value="edit">
+                            <input type="hidden" name="booking_id" value="{{ bk.id }}">
+
+                            <label>Pick-up date
+                                <input type="date" name="pickup_date" value="{{ bk.pickup_date }}" required>
+                            </label>
+
+                            <label>Return date
+                                <input type="date" name="return_date" value="{{ bk.return_date }}" required>
+                            </label>
+
+                            <label>Pick-up location
+                                <select name="pickup_location" required>
+                                    {% for place in pickups %}
+                                        <option value="{{ place }}"{{ bk.pickup_location == place ? ' selected' : '' }}>{{ place }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                            <label>Return location
+                                <select name="return_location" required>
+                                    {% for place in pickups %}
+                                        <option value="{{ place }}"{{ bk.return_location == place ? ' selected' : '' }}>{{ place }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                            <label>Driver's age
+                                <select name="driver_age" required>
+                                    {% for age in ages %}
+                                        <option value="{{ age }}"{{ bk.driver_age == age ? ' selected' : '' }}>{{ age }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                            <label>Total
+                                <input type="text" value="&#8369;{{ bk.total|number_format }}" disabled>
+                                <small class="muted">Worked out again from the dates on save.</small>
+                            </label>
+
+                            <label>Status
+                                <select name="status">
+                                    {% for st in ['pending', 'confirmed', 'completed', 'cancelled'] %}
+                                        <option value="{{ st }}"{{ bk.status == st ? ' selected' : '' }}>{{ st|capitalize }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                            <div class="wide">
+                                <button type="submit" class="ad-btn ad-ok">Save changes</button>
+                            </div>
+                        </form>
+                    </details>
+
+                    <div class="bk-foot">
+                        <p class="bk-made">Booked {{ bk.created_at|date('M j, Y g:i a') }}</p>
+
+                        <div class="ad-actions">
+                            {% if bk.status == 'pending' %}
+                                <form method="POST" action="{{ path('admin_dashboard', {status: filter}) }}">
+                                    <input type="hidden" name="booking_id" value="{{ bk.id }}">
+                                    <input type="hidden" name="status" value="confirmed">
+                                    <button type="submit" class="ad-btn ad-ok">Confirm</button>
+                                </form>
+                                <form method="POST" action="{{ path('admin_dashboard', {status: filter}) }}" onsubmit="return confirm('Cancel this booking?');">
+                                    <input type="hidden" name="booking_id" value="{{ bk.id }}">
+                                    <input type="hidden" name="status" value="cancelled">
+                                    <button type="submit" class="ad-btn ad-no">Cancel</button>
+                                </form>
+                            {% elseif bk.status == 'confirmed' %}
+                                <form method="POST" action="{{ path('admin_dashboard', {status: filter}) }}">
+                                    <input type="hidden" name="booking_id" value="{{ bk.id }}">
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" class="ad-btn ad-ok">{{ is_late ? 'Car returned' : 'Mark completed' }}</button>
+                                </form>
+                                {% if is_late %}
+                                    <form method="POST" action="{{ path('admin_dashboard', {status: filter}) }}" onsubmit="return confirm('Cancel this booking? Use this if the trip never happened.');">
+                                        <input type="hidden" name="booking_id" value="{{ bk.id }}">
+                                        <input type="hidden" name="status" value="cancelled">
+                                        <button type="submit" class="ad-btn ad-no">Never collected</button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+
+                            <form method="POST" action="{{ path('admin_dashboard', {status: filter}) }}" onsubmit="return confirm('Delete this booking permanently? This cannot be undone.');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="booking_id" value="{{ bk.id }}">
+                                <button type="submit" class="ad-btn ad-no">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+
+            </article>
+        {% endfor %}
+
+    {% endif %}
+{% endblock %}

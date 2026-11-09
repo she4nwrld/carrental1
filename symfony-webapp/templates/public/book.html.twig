@@ -1,0 +1,167 @@
+{% extends 'public/base.html.twig' %}
+
+{% import 'public/_spec.html.twig' as ui %}
+
+{% block title %}Book {{ car.name }} — Shift Car Rental{% endblock %}
+{% block main_class %}book-main{% endblock %}
+
+{% block body %}
+
+  <section class="book-wrap">
+
+    <!-- wala nga kilid: ang napiling sakyanan -->
+    <aside class="book-summary">
+      <a class="book-back" href="{{ path('home') }}#our-vehicles">&larr; Choose a different vehicle</a>
+
+      <div class="car-photo">
+        <span class="car-tag">{{ car.type }}</span>
+        <img src="{{ asset(car.img) }}" alt="{{ car.name }}">
+      </div>
+
+      <h2>{{ car.name }}</h2>
+
+      <p class="car-price">
+        <span class="amount">&#8369;{{ car.price|number_format }}</span>
+        <span class="per">per day</span>
+      </p>
+
+      <div class="car-specs">
+        {{ ui.spec('passenger', car.seats ~ ' Passenger') }}
+        {{ ui.spec('doors',     car.doors ~ ' Doors') }}
+        {{ ui.spec('bagL',      car.bagL ~ ' Large Bags') }}
+        {{ ui.spec('bagS',      car.bagS ~ ' Small Bags') }}
+        {{ ui.spec('kids',      car.kids ~ ' Children') }}
+        {{ ui.spec('gear',      car.gear) }}
+        {% if car.aircon %}
+          {{ ui.spec('aircon', 'Airconditioning') }}
+        {% endif %}
+      </div>
+    </aside>
+
+    <!-- tuo nga kilid: ang booking form -->
+    <div class="book-form-side">
+      <h1>Complete your booking</h1>
+      <p class="book-sub">Booking as <strong>{{ user_full_name|default(user_name) }}</strong>. We confirm availability before you pay anything.</p>
+
+      {% if errors is not empty %}
+        <div class="auth-errors" role="alert">
+          <ul>
+            {% for err in errors %}
+              <li>{{ err }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <form method="POST" action="{{ path('book', {car_id: car.id}) }}" class="book-form" id="bookForm"
+            data-price="{{ car.price }}"
+            data-delivery-fee="{{ delivery_fee }}"
+            data-promos="{{ promos_json|e('html_attr') }}" novalidate>
+
+        <input type="hidden" name="action" value="create_booking">
+        <input type="hidden" name="car_id" value="{{ car.id }}">
+
+        <div class="book-row">
+          <div class="auth-field">
+            <label for="pickup_location">Pick-up Location</label>
+            <select id="pickup_location" name="pickup_location" required>
+              <option value="">Select location</option>
+              {% for place in pickups %}
+                <option value="{{ place }}"{{ old.pickup_location == place ? ' selected' : '' }}>{{ place }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="auth-field">
+            <label for="return_location">Return Location</label>
+            <select id="return_location" name="return_location" required>
+              <option value="">Select location</option>
+              {% for place in pickups %}
+                <option value="{{ place }}"{{ old.return_location == place ? ' selected' : '' }}>{{ place }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="book-row">
+          <div class="auth-field">
+            <label for="pickup_date">Pick-up Date</label>
+            <input type="date" id="pickup_date" name="pickup_date"
+                   min="{{ today }}" value="{{ old.pickup_date }}" required>
+          </div>
+
+          <div class="auth-field">
+            <label for="return_date">Return Date</label>
+            <input type="date" id="return_date" name="return_date"
+                   min="{{ old.pickup_date != '' ? old.pickup_date : today }}" value="{{ old.return_date }}" required>
+          </div>
+        </div>
+
+        <div class="book-row">
+          <div class="auth-field">
+            <label for="driver_age">Driver Age</label>
+            <select id="driver_age" name="driver_age" required>
+              <option value="">Select age</option>
+              {% for bracket in ages %}
+                <option value="{{ bracket }}"{{ old.driver_age == bracket ? ' selected' : '' }}>{{ bracket }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="auth-field">
+            <label for="discount_code">Discount Code <span class="opt">(optional, comma-separate to stack)</span></label>
+            <div class="promo-field">
+              <input type="text" id="discount_code" name="discount_code" maxlength="45"
+                     placeholder="e.g. EARLY10, LOCAL5" value="{{ old.discount_code }}">
+              <button type="button" class="promo-apply" id="promoCheck">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- feedback sa code inig-type o pag-click sa Apply -->
+        <p class="promo-msg" id="promoMsg" aria-live="polite" hidden></p>
+
+        <label class="book-check" for="delivery">
+          <input type="checkbox" id="delivery" name="delivery" value="1"
+                 {{ old.delivery == '1' ? 'checked' : '' }}>
+          <span>Deliver the car to me (+&#8369;{{ delivery_fee|number_format }})</span>
+        </label>
+
+        <!-- itemized nga kwenta: gi-fill sa php ug gi-update sa app.js -->
+        <div class="book-total" id="bookTotal" aria-live="polite">
+          <ul class="quote" id="quoteLines">
+            {% if days > 0 %}
+              <li>
+                <span>&#8369;{{ car.price|number_format }} &times; {{ quote.billable_days }} {{ quote.billable_days == 1 ? 'day' : 'days' }}{{ quote.free_days > 0 ? ' (' ~ quote.free_days ~ ' free)' : '' }}</span>
+                <strong>&#8369;{{ quote.subtotal|number_format }}</strong>
+              </li>
+              {% if quote.discount > 0 %}
+                <li class="quote-disc">
+                  <span>Discount ({{ quote.applied|join(', ') }} &minus;{{ quote.percent }}%)</span>
+                  <strong>&minus;&#8369;{{ quote.discount|number_format }}</strong>
+                </li>
+              {% endif %}
+              {% if quote.delivery_fee > 0 %}
+                <li>
+                  <span>Car delivery</span>
+                  <strong>&#8369;{{ quote.delivery_fee|number_format }}</strong>
+                </li>
+              {% endif %}
+              <li class="quote-total">
+                <span>Estimated total</span>
+                <strong>&#8369;{{ quote.total|number_format }}</strong>
+              </li>
+            {% else %}
+              <li class="quote-empty">Pick your dates above to see the full price breakdown.</li>
+            {% endif %}
+          </ul>
+        </div>
+
+        <button type="submit" class="auth-btn">Confirm Booking</button>
+
+      </form>
+    </div>
+
+  </section>
+
+{% endblock %}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create an Account — Shift Car Rental</title>
+<link rel="icon" type="image/png" href="{{ asset('images/shift-mark.png') }}?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset('css/style.css') }}">
+</head>
+
+<body class="auth-page">
+
+<header class="topbar">
+  <div class="brand">
+    <a href="{{ path('home') }}">
+      <img src="{{ asset('images/shift-logo.png') }}" alt="Shift Car Rental">
+    </a>
+  </div>
+  <div class="right">
+    <a href="{{ path('app_login') }}">Already have an account?</a>
+  </div>
+</header>
+
+<main class="auth-main">
+  <section class="auth-card">
+
+    <h1>Create your account</h1>
+    <p class="auth-sub">Sign up to book a car and track your reservations.</p>
+
+    {% if errors|default([]) is not empty %}
+      <div class="auth-errors" role="alert">
+        <ul>
+          {% for err in errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{{ path('app_register') }}" class="auth-form" novalidate>
+
+      <div class="auth-field">
+        <label for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name" maxlength="100"
+               value="{{ old.full_name|default('') }}"
+               placeholder="Juan Dela Cruz" required>
+      </div>
+
+      <div class="auth-field">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email"
+               value="{{ old.email|default('') }}"
+               placeholder="juan@example.com" required>
+      </div>
+
+      <div class="auth-field">
+        <label for="phone">Mobile Number</label>
+        <input type="text" id="phone" name="phone"
+               value="{{ old.phone|default('') }}"
+               placeholder="09171234567" required>
+      </div>
+
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+               autocomplete="new-password"
+               placeholder="At least 8 characters" required>
+        <small>Must be 8+ characters with a letter, a number and a special character (e.g. ! @ # $).</small>
+      </div>
+
+      <div class="auth-field">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password"
+               autocomplete="new-password"
+               placeholder="Re-type your password" required>
+      </div>
+
+      <button type="submit" class="auth-btn">Create Account</button>
+
+    </form>
+
+    <p class="auth-alt">Already registered? <a href="{{ path('app_login') }}">Log in instead</a></p>
+
+  </section>
+</main>
+
+</body>
+</html>

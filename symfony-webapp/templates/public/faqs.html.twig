@@ -1,0 +1,33 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}FAQs — Shift Car Rental{% endblock %}
+{% block main_class %}page-main{% endblock %}
+
+{% block body %}
+
+  <section class="page-hero" id="faqs-hero">
+    <h1>Frequently Asked <span>Questions</span></h1>
+    <p>Everything renters usually ask before driving with Shift.</p>
+  </section>
+
+  <section class="faq-wrap" id="faq-list">
+    {% for group, items in faq_groups %}
+
+      <h2 class="faq-group">{{ group }}</h2>
+
+      {% for item in items %}
+        <details class="faq-item">
+          <summary>{{ item.q }}<span class="faq-caret" aria-hidden="true">&#8964;</span></summary>
+          <p>{{ item.a }}</p>
+        </details>
+      {% endfor %}
+
+    {% endfor %}
+
+    <p class="faq-still">
+      Still have a question?
+      <a href="{{ path('contact') }}">Contact us</a> or call <a href="tel:+639123456789">+63 912 345 6789</a>.
+    </p>
+  </section>
+
+{% endblock %}

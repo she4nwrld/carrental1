@@ -1,0 +1,144 @@
+{% set is_logged_in = is_logged_in|default(app.user is not null) %}
+{% set is_admin = is_admin|default(is_granted('ROLE_ADMIN')) %}
+{% set user_name = user_name|default(app.user ? app.user.fullName : 'Guest') %}
+
+<header class="topbar">
+  <div class="brand">
+    <a href="{{ path('home') }}">
+      <img src="{{ asset('images/shift-logo.png') }}" alt="Shift Car Rental">
+    </a>
+  </div>
+
+  <nav class="menu" id="main-menu" aria-label="Main navigation">
+    <a href="{{ path('home') }}">Home</a>
+    <a href="{{ path('vehicles') }}">Vehicles</a>
+    <a href="{{ path('locations') }}">Locations</a>
+    <a href="{{ path('deals') }}">Deals</a>
+    <a href="{{ path('reviews') }}">Reviews</a>
+    <a href="{{ path('faqs') }}">FAQs</a>
+    <a href="{{ path('contact') }}">Contact Us</a>
+
+    {# makita ra ni sa gamay nga screen, kay gitago ang .right links didto #}
+    <span class="menu-auth">
+      {% if is_logged_in %}
+        {% if is_admin %}
+          <a href="{{ path('admin_dashboard') }}">Dashboard</a>
+        {% endif %}
+        <a href="{{ path('profile') }}">My Profile</a>
+        <a href="{{ path('bookings') }}">My Bookings</a>
+        <a href="{{ path('app_logout') }}">Log Out</a>
+      {% else %}
+        <a href="{{ path('app_login') }}">Log In</a>
+        <a href="{{ path('app_register') }}">Create Account</a>
+      {% endif %}
+    </span>
+  </nav>
+
+  <div class="right">
+    {% if is_logged_in %}
+
+      {# naka-login: ngalan, profile, mga booking, ug logout #}
+      {% if is_admin %}
+        <a href="{{ path('admin_dashboard') }}">Dashboard</a>
+      {% endif %}
+      <a href="{{ path('profile') }}">My Profile</a>
+      <a href="{{ path('bookings') }}">My Bookings</a>
+      <span class="greet">Hi, {{ user_name }}</span>
+      <a class="bookbtn" href="{{ path('app_logout') }}">Log Out</a>
+
+    {% else %}
+
+      {# bisita: My Booking ug Book Now — ang data-auth mao ang nag-trigger sa modal #}
+      <a href="{{ path('bookings') }}" data-auth="1">My Booking</a>
+      <a class="bookbtn" href="#" id="booknow-btn">Book Now</a>
+
+    {% endif %}
+  </div>
+
+  <button type="button" class="nav-toggle" aria-expanded="false"
+          aria-controls="main-menu" aria-label="Toggle navigation menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<script>
+(function () {
+  var btn  = document.querySelector('.nav-toggle');
+  var menu = document.getElementById('main-menu');
+  if (!btn || !menu) return;
+
+  function close() {
+    menu.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  btn.addEventListener('click', function () {
+    var open = menu.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  /* mo-click sa gawas sa panel: sira */
+  document.addEventListener('click', function (e) {
+    if (!menu.classList.contains('is-open')) return;
+    if (menu.contains(e.target) || btn.contains(e.target)) return;
+    close();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+      close();
+      btn.focus();
+    }
+  });
+})();
+</script>
+
+{% if not is_logged_in %}
+{# modal: mo-gawas kung guest mo-click sa Book Now kinahanglan mag-login o mag-create account una #}
+<div class="auth-modal" id="auth-modal" hidden>
+  <div class="auth-modal-box" role="dialog" aria-labelledby="auth-modal-title">
+    <button type="button" class="auth-modal-close" id="auth-modal-close" aria-label="Close">&times;</button>
+    <h3 id="auth-modal-title">Ready to book?</h3>
+    <p>You need an account to book a vehicle. Log in or create one it only takes a minute.</p>
+    <div class="auth-modal-actions">
+      <a class="am-btn" href="{{ path('app_login', {next: path('vehicles')}) }}">Log In</a>
+      <a class="am-btn am-ghost" href="{{ path('app_register') }}">Create Account</a>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var modal = document.getElementById('auth-modal');
+  if (!modal) return;
+  var loginLink = modal.querySelector('.auth-modal-actions a.am-btn');
+
+  function openModal(e, nextUrl) {
+    e.preventDefault();
+    if (nextUrl && loginLink) {
+      var base = loginLink.getAttribute('href').split('?')[0];
+      loginLink.setAttribute('href', base + '?next=' + encodeURIComponent(nextUrl));
+    }
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  var btn = document.getElementById('booknow-btn');
+  if (btn) btn.addEventListener('click', function (e) { openModal(e); });
+
+  /* guest presses Book Now on a car card, o My Booking sa header: modal ang mogawas */
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest ? e.target.closest('a.book, a[data-auth]') : null;
+    if (link) openModal(e, link.getAttribute('href'));
+  });
+
+  document.getElementById('auth-modal-close').addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+})();
+</script>
+{% endif %}

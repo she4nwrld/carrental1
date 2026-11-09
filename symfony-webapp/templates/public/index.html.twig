@@ -1,0 +1,292 @@
+{% extends 'public/base.html.twig' %}
+
+{% import 'public/_spec.html.twig' as ui %}
+
+{% block title %}Shift Car Rental &mdash; Dumaguete City, Sibulan &amp; Valencia{% endblock %}
+
+{% block body %}
+
+<!-- hero -->
+<section class="hero">
+
+  <p class="reviews">
+    <span class="st" aria-hidden="true">★★★★★</span> 4.9/5 — based on 1,989 Google reviews
+  </p>
+
+  <h1>Dumaguete City / Sibulan / Valencia <span>Car Rental.</span></h1>
+
+  <p class="desc">
+    Self-drive rentals across Dumaguete City, Sibulan and Valencia.
+    Pick a unit, reserve it online, and we confirm your schedule
+    before you pay anything.
+  </p>
+
+  <form class="box" action="{{ path('vehicles') }}" method="get">
+
+    <div class="line">
+      <div class="col">
+        <label for="pickup-location">Pick-up Location</label>
+        <select id="pickup-location" name="pickup_location">
+          <option value="">Select location</option>
+          {% for place in pickups %}
+            <option value="{{ place }}"{{ q.pickup_location|default('') == place ? ' selected' : '' }}>{{ place }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col">
+        <label for="return-location">Return Location</label>
+        <select id="return-location" name="return_location">
+          <option value="">Same as pick-up</option>
+          {% for place in pickups %}
+            <option value="{{ place }}"{{ q.return_location|default('') == place ? ' selected' : '' }}>{{ place }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col wide">
+        <label for="pickup-date">Pick-up Date</label>
+        <input type="date" id="pickup-date" name="pickup_date"
+               min="{{ today }}" value="{{ q.pickup_date|default('') }}">
+      </div>
+      <div class="col wide">
+        <label for="return-date">Return Date</label>
+        <input type="date" id="return-date" name="return_date"
+               min="{{ q.pickup_date|default('') != '' ? q.pickup_date : today }}"
+               value="{{ q.return_date|default('') }}">
+      </div>
+    </div>
+
+    <div class="line">
+      <div class="col">
+        <label for="category">Category</label>
+        <select id="category" name="category">
+          {% for cat in categories %}
+            <option value="{{ cat }}"{{ cat == active ? ' selected' : '' }}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col">
+        <label for="driver-age">Driver Age</label>
+        <select id="driver-age" name="driver_age">
+          <option value="">Select age</option>
+          {% for bracket in ages %}
+            <option value="{{ bracket }}"{{ q.driver_age|default('') == bracket ? ' selected' : '' }}>{{ bracket }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col wide">
+        <label for="discount-code">Discount Code</label>
+        <input type="text" id="discount-code" name="discount_code"
+               placeholder="Optional" maxlength="45"
+               value="{{ q.discount_code|default('') }}">
+      </div>
+      <div class="col wide findcol">
+        <button class="findbtn" type="submit">Find Your Car</button>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div>
+        <input type="checkbox" id="delivery" name="delivery" value="1"
+               {{ q.delivery|default('') == '1' ? 'checked' : '' }}>
+        <label class="checkbox-label" for="delivery">Deliver the car to me (&#8369;{{ delivery_fee|number_format }})</label>
+      </div>
+      <div><a href="{{ path('bookings') }}">Already booked? <u>Manage your booking</u></a></div>
+    </div>
+
+  </form>
+
+</section>
+
+<!-- our vehicles -->
+<section class="vehicles" id="our-vehicles">
+
+  <h2 class="vehicles-title">Our <span>Vehicles</span></h2>
+
+  <div class="filters">
+    {% for cat in categories %}
+      <a class="filter-tab{{ cat == active ? ' is-active' : '' }}"
+         href="{{ path('home', {category: cat}) }}{{ trip_qs|default('') }}#our-vehicles"
+         {{ cat == active ? 'aria-current="true"' : '' }}>{{ cat }}</a>
+    {% endfor %}
+  </div>
+
+  <div class="carousel" id="carCarousel" aria-roledescription="carousel" aria-label="Available vehicles">
+
+    <button class="arrow" type="button" data-dir="prev" aria-label="Previous vehicles">&#8592;</button>
+
+    <div class="slide-view">
+      <div class="slide-row" id="carRow">
+        {% for car in cars %}
+
+          <article class="car">
+
+            <div class="car-photo">
+              <span class="car-tag">{{ car.type }}</span>
+              <img src="{{ asset(car.img) }}" alt="{{ car.name }}" loading="lazy">
+            </div>
+
+            <div class="car-top">
+              <h3>{{ car.name }}</h3>
+              <p class="car-price">
+                <span class="amount">&#8369;{{ car.price|number_format }}</span>
+                <span class="per">per day</span>
+              </p>
+            </div>
+
+            <div class="car-specs">
+              {{ ui.spec('passenger', car.seats ~ ' Passenger') }}
+              {{ ui.spec('doors',     car.doors ~ ' Doors') }}
+              {{ ui.spec('bagL',      car.bagL ~ ' Large Bags') }}
+              {{ ui.spec('bagS',      car.bagS ~ ' Small Bags') }}
+              {{ ui.spec('kids',      car.kids ~ ' Children') }}
+              {{ ui.spec('gear',      car.gear) }}
+              {% if car.aircon %}
+                {{ ui.spec('aircon', 'Airconditioning') }}
+              {% endif %}
+            </div>
+
+            <a class="book" href="{{ path('book', {car_id: car.id}) }}{{ trip_qs|default('') }}">
+              <span class="label">Book Now <span class="book-arrow" aria-hidden="true">&#8599;</span></span>
+            </a>
+
+          </article>
+
+        {% endfor %}
+
+        {% if cars is empty %}
+          <p class="no-cars">No {{ active }} units available yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <button class="arrow" type="button" data-dir="next" aria-label="Next vehicles">&#8594;</button>
+
+  </div>
+
+  <div class="controls" id="carControls">
+    <div class="dots" id="carDots" aria-hidden="true"></div>
+  </div>
+
+</section>
+
+<!-- promo banner -->
+<section class="promo" id="promo">
+  <div class="promo-inner">
+
+    <div class="promo-text">
+      <p class="promo-eyebrow">Dumaguete City Car Rentals</p>
+
+      <h2 class="promo-title">
+        Book now to get a
+        <span>special discount!</span>
+      </h2>
+
+      <p class="promo-desc">
+        Island roads, waterfalls and dive spots are waiting. Reserve early
+        and save on your Dumaguete trip. Free cancellation up to 24 hours
+        before pick-up.
+      </p>
+
+      <a class="promo-btn" href="{{ path('deals') }}">See the deals <span aria-hidden="true">&#8599;</span></a>
+    </div>
+
+    <div class="promo-photo">
+      <img src="{{ asset('images/promo-bg.png') }}" alt="Coastline near Dumaguete City" loading="lazy">
+    </div>
+
+  </div>
+</section>
+
+<!-- our locations -->
+<section class="locations" id="locations">
+
+  <div class="sec-head">
+    <h2>Our <span>Locations</span></h2>
+    <p>Pick-up and delivery across Negros Oriental</p>
+  </div>
+
+  <div class="loc-grid">
+    {% for branch in branches %}
+
+      <article class="loc">
+        <img src="{{ asset(branch.img) }}" alt="{{ branch.name }} pick-up point" loading="lazy">
+
+        <div class="loc-body">
+          <span class="loc-pin" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+          </span>
+          <h3>{{ branch.name }}</h3>
+          <p>{{ branch.note }}</p>
+        </div>
+      </article>
+
+    {% endfor %}
+  </div>
+
+</section>
+
+<!-- recent reviews -->
+<section class="reviews-sec" id="reviews">
+
+  <div class="sec-head">
+    <h2>Recent <span>Reviews</span></h2>
+
+    <div class="rv-rating">
+      <span class="rv-big">{{ blend_avg|number_format(1) }}</span>
+      <span class="rv-stars" aria-label="{{ blend_avg }} out of 5 stars">
+        <span aria-hidden="true">{{ ui.stars(blend_avg|round) }}</span>
+      </span>
+      <span class="rv-count">from {{ blend_count|number_format }} reviews</span>
+    </div>
+  </div>
+
+  <div class="carousel" id="rvCarousel" aria-roledescription="carousel" aria-label="Recent reviews">
+
+    <button class="arrow" type="button" data-dir="prev" aria-label="Previous reviews">&#8592;</button>
+
+    <div class="slide-view">
+      <div class="slide-row" id="rvRow">
+        {% for note in reviews %}
+
+          <article class="rv">
+
+            <div class="rv-who">
+              <span class="rv-initial" aria-hidden="true">{{ note.name|slice(0, 1)|upper }}</span>
+
+              <div class="rv-name">
+                <h3>{{ note.name }}<span class="rv-check" title="Verified renter">&#10003;</span></h3>
+                <p>{{ note.meta|raw }}</p>
+              </div>
+
+              {% if note.google %}
+                <span class="rv-g" role="img" aria-label="Google review">
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C37.8 39.2 44 34.5 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+                </span>
+              {% endif %}
+            </div>
+
+            <p class="rv-stars" aria-label="{{ note.rating }} out of 5 stars">
+              <span aria-hidden="true">{{ ui.stars(note.rating) }}</span>
+            </p>
+
+            <p class="rv-text">&ldquo;{{ note.text }}&rdquo;</p>
+
+          </article>
+
+        {% endfor %}
+      </div>
+    </div>
+
+    <button class="arrow" type="button" data-dir="next" aria-label="Next reviews">&#8594;</button>
+
+  </div>
+
+  <div class="controls" id="rvControls">
+    <div class="dots" id="rvDots" aria-hidden="true"></div>
+  </div>
+
+  <p class="rv-more"><a href="{{ path('reviews') }}">Read all reviews <span>&amp; write your own</span></a></p>
+
+</section>
+
+{% endblock %}

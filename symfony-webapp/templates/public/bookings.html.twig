@@ -1,0 +1,85 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}My Bookings — Shift Car Rental{% endblock %}
+{% block main_class %}book-main{% endblock %}
+
+{% block body %}
+
+  <section class="list-wrap">
+
+    <div class="list-head">
+      <div>
+        <h1>My Bookings</h1>
+        <p class="book-sub">Reservations for <strong>{{ user_full_name|default(user_name) }}</strong></p>
+      </div>
+      <a class="bookbtn" href="{{ path('home') }}#our-vehicles">+ Book another car</a>
+    </div>
+
+    {% if cancelled|default(false) %}
+      <div class="flash" role="status">Your booking has been cancelled.</div>
+    {% endif %}
+
+    {% if notfound|default(false) %}
+      <div class="flash flash-warn" role="alert">That booking could not be cancelled.</div>
+    {% endif %}
+
+    {% if bookings is empty %}
+
+      <div class="list-empty">
+        <h2>No bookings yet</h2>
+        <p>You have not reserved a vehicle with us yet. Pick a car on the home page and your reservations will show up here.</p>
+        <a class="auth-btn" href="{{ path('home') }}#our-vehicles">Browse Vehicles</a>
+      </div>
+
+    {% else %}
+
+      {% for bk in bookings %}
+
+        <article class="bk-card">
+
+          <div class="bk-photo">
+            <span class="car-tag">{{ bk.carType }}</span>
+            <img src="{{ asset(bk.carImg) }}" alt="{{ bk.carName }}" loading="lazy">
+          </div>
+
+          <div class="bk-body">
+
+            <div class="bk-top">
+              <div>
+                <h2>{{ bk.carName }}</h2>
+                <p class="bk-ref">SHIFT-{{ '%04d'|format(bk.id) }}</p>
+              </div>
+              <span class="pill pill-{{ bk.status }}">{{ bk.status|capitalize }}</span>
+            </div>
+
+            <div class="bk-grid">
+              <div><span>Pick-up</span><strong>{{ bk.pickupDate|date('M j, Y') }}</strong><em>{{ bk.pickupLocation }}</em></div>
+              <div><span>Return</span><strong>{{ bk.returnDate|date('M j, Y') }}</strong><em>{{ bk.returnLocation }}</em></div>
+              <div><span>Duration</span><strong>{{ bk.days }} {{ bk.days == 1 ? 'day' : 'days' }}</strong><em>Driver {{ bk.driverAge }}{{ bk.delivery ? ' · with delivery' : '' }}</em></div>
+              <div><span>Total</span><strong>&#8369;{{ bk.total|number_format }}</strong><em>{% if bk.discount > 0 %}Saved &#8369;{{ bk.discount|number_format }} ({{ bk.discountCode }}){% else %}Pay on pick-up{% endif %}</em></div>
+            </div>
+
+            <div class="bk-foot">
+              <p class="bk-made">Booked on {{ bk.createdAt|date('M j, Y') }}</p>
+
+              {% if bk.status in ['pending', 'confirmed'] %}
+                <form method="POST" action="{{ path('bookings') }}"
+                      onsubmit="return confirm('Cancel this booking?');">
+                  <input type="hidden" name="action" value="cancel_booking">
+                  <input type="hidden" name="booking_id" value="{{ bk.id }}">
+                  <button type="submit" class="bk-cancel-btn">Cancel Booking</button>
+                </form>
+              {% endif %}
+            </div>
+
+          </div>
+
+        </article>
+
+      {% endfor %}
+
+    {% endif %}
+
+  </section>
+
+{% endblock %}

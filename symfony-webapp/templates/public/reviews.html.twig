@@ -1,0 +1,177 @@
+{% extends 'public/base.html.twig' %}
+
+{% import 'public/_spec.html.twig' as ui %}
+
+{% block title %}Reviews — Shift Car Rental{% endblock %}
+{% block main_class %}page-main{% endblock %}
+
+{% block body %}
+
+  <section class="page-hero" id="reviews-hero">
+    <h1>Customer <span>Reviews</span></h1>
+    <p>What renters say about driving with Shift across Negros Oriental.</p>
+
+    <div class="rv-rating">
+      <span class="rv-big">{{ blend_avg|number_format(1) }}</span>
+      <span class="rv-stars" aria-label="{{ blend_avg }} out of 5 stars">
+        <span aria-hidden="true">{{ ui.stars(blend_avg|round) }}</span>
+      </span>
+      <span class="rv-count">from {{ blend_count|number_format }} reviews</span>
+    </div>
+  </section>
+
+  <section class="review-form-sec" id="write-review">
+
+    {% if flash|default('') != '' %}
+      <p class="contact-sent">{{ flash }}</p>
+    {% endif %}
+
+    {% if not is_logged_in %}
+
+      <div class="review-gate">
+        <h2>Rented with us? <span>Share your experience.</span></h2>
+        <p><a href="{{ path('app_login', {next: path('reviews') ~ '#write-review'}) }}">Log in</a>
+           or <a href="{{ path('app_register') }}">create an account</a> to leave a review.</p>
+      </div>
+
+    {% elseif not can_review %}
+
+      <div class="review-gate">
+        <h2>Reviews are for <span>verified renters</span></h2>
+        <p>Complete a rental with us first, then come back and tell everyone how it went.
+           <a href="{{ path('vehicles') }}">Browse vehicles</a></p>
+      </div>
+
+    {% else %}
+
+      <div class="review-form-card">
+        <h2>{{ my_review ? 'Edit your' : 'Write a' }} <span>review</span></h2>
+
+        {% if my_review and not my_review.approved %}
+          <p class="review-pending">
+            Your review is being checked by our team, so it is not on the site yet.
+            You can still edit it below.
+          </p>
+        {% endif %}
+
+        {% if errors is not empty %}
+          <div class="auth-errors">
+            <ul>
+              {% for err in errors %}
+                <li>{{ err }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        <form method="post" action="{{ path('reviews') }}">
+          <input type="hidden" name="action" value="save_review">
+
+          <fieldset class="star-pick">
+            <legend>Your rating</legend>
+            {% for i in [5, 4, 3, 2, 1] %}
+              <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}"
+                     {{ i == form_rating ? 'checked' : '' }}>
+              <label for="star{{ i }}" title="{{ i }} star{{ i > 1 ? 's' : '' }}">&#9733;</label>
+            {% endfor %}
+          </fieldset>
+
+          <div class="auth-field">
+            <label for="review-text">Your review</label>
+            <textarea id="review-text" name="review_text" rows="4" maxlength="600"
+                      placeholder="How was the car, the pick-up, the service?" required>{{ form_text }}</textarea>
+            <small>Max 600 characters. Posting as {{ user_full_name|default(user_name) }}.</small>
+          </div>
+
+          <button class="auth-btn" type="submit">{{ my_review ? 'Update Review' : 'Post Review' }}</button>
+        </form>
+
+        {% if my_review %}
+          <form method="post" action="{{ path('reviews') }}" class="review-delete">
+            <input type="hidden" name="action" value="delete_review">
+            <button type="submit">Delete my review</button>
+          </form>
+        {% endif %}
+      </div>
+
+    {% endif %}
+
+  </section>
+
+  <section class="customer-reviews" id="customer-reviews">
+    <div class="sec-head">
+      <h2>From our <span>Renters</span></h2>
+      <p>{{ customer_reviews is empty ? 'Be the first to leave a review!' : 'Real reviews from verified Shift renters.' }}</p>
+    </div>
+
+    {% if customer_reviews is not empty %}
+      <div class="reviews-grid">
+        {% for note in customer_reviews %}
+
+          <article class="rv">
+
+            <div class="rv-who">
+              <span class="rv-initial" aria-hidden="true">{{ note.full_name|slice(0, 1)|upper }}</span>
+
+              <div class="rv-name">
+                <h3>{{ note.full_name }}<span class="rv-check" title="Verified renter">&#10003;</span></h3>
+                <p>Verified Renter &middot; {{ note.created_at|date('M j, Y') }}</p>
+              </div>
+
+              <span class="rv-g" role="img" aria-label="Google review">
+                <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C37.8 39.2 44 34.5 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+              </span>
+            </div>
+
+            <p class="rv-stars" aria-label="{{ note.rating }} out of 5 stars">
+              <span aria-hidden="true">{{ ui.stars(note.rating) }}</span>
+            </p>
+
+            <p class="rv-text">&ldquo;{{ note.review_text }}&rdquo;</p>
+
+          </article>
+
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="customer-reviews" id="google-reviews">
+    <div class="sec-head">
+      <h2>Google <span>Reviews</span></h2>
+      <p>Verified reviews from Google</p>
+    </div>
+
+    <div class="reviews-grid">
+      {% for note in feedback %}
+
+        <article class="rv">
+
+          <div class="rv-who">
+            <span class="rv-initial" aria-hidden="true">{{ note.name|slice(0, 1)|upper }}</span>
+
+            <div class="rv-name">
+              <h3>{{ note.name }}<span class="rv-check" title="Verified renter">&#10003;</span></h3>
+              <p>{{ note.role }} &middot; {{ note.when }}</p>
+            </div>
+
+            <span class="rv-g" role="img" aria-label="Google review">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C37.8 39.2 44 34.5 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+            </span>
+          </div>
+
+          <p class="rv-stars" aria-label="5 out of 5 stars">
+            <span aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          </p>
+
+          <p class="rv-text">&ldquo;{{ note.text }}&rdquo;</p>
+
+        </article>
+
+      {% endfor %}
+    </div>
+
+    <p class="rv-more">&amp; many more on <span>Google</span></p>
+  </section>
+
+{% endblock %}

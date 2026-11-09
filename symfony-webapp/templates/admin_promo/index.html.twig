@@ -1,0 +1,276 @@
+{% extends 'base.html.twig' %}
+
+{#
+    One-line summary of what a promo actually does.
+    Ported from promoRule() in the legacy admin/promos.php.
+#}
+{% macro promo_rule(p) %}
+    {%- set bits = [] -%}
+    {%- if p.percent > 0 -%}
+        {%- set bits = bits|merge([p.percent ~ '% off']) -%}
+    {%- endif -%}
+    {%- if p.free_days > 0 -%}
+        {%- set bits = bits|merge([p.free_days ~ ' free day' ~ (p.free_days == 1 ? '' : 's')]) -%}
+    {%- endif -%}
+    {%- if bits is empty -%}
+        {%- set bits = ['No discount — information only'] -%}
+    {%- endif -%}
+    {%- if p.min_days > 0 -%}
+        {%- set bits = bits|merge(['needs ' ~ p.min_days ~ '+ days']) -%}
+    {%- endif -%}
+    {%- if p.min_advance_days > 0 -%}
+        {%- set bits = bits|merge(['book ' ~ p.min_advance_days ~ ' days ahead']) -%}
+    {%- endif -%}
+    {%- set bits = bits|merge([p.stackable ? 'stackable' : 'on its own']) -%}
+    {{- bits|join(' · ') -}}
+{% endmacro %}
+
+{% block title %}Promos{% endblock %}
+{% block page_title %}Promos{% endblock %}
+
+{% block page_head %}
+    <div class="list-head">
+        <h1>Deals and codes</h1>
+        <p class="book-sub">Edits show on the Deals page and the booking form right away.</p>
+    </div>
+{% endblock %}
+
+{% block body %}
+    {% import _self as rules %}
+
+    <div class="stat-grid">
+        <div class="stat">
+            <span>Total promos</span>
+            <strong>{{ stats.total|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Live now</span>
+            <strong>{{ stats.live|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Switched off</span>
+            <strong>{{ stats.off|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Expired</span>
+            <strong>{{ stats.gone|number_format }}</strong>
+        </div>
+    </div>
+
+    {# add form, collapsed until needed #}
+    <details class="adm-add">
+        <summary>Add a promo</summary>
+
+        <form method="POST" action="{{ path('admin_promo', {view: filter}) }}" class="car-form">
+            <input type="hidden" name="action" value="add">
+
+            <label>Code
+                <input type="text" name="code" maxlength="20" placeholder="EARLY10">
+            </label>
+
+            <label>Tag
+                <input type="text" name="tag" maxlength="30" required placeholder="Early Bird">
+            </label>
+
+            <label class="wide">Title
+                <input type="text" name="title" maxlength="120" required placeholder="Book 7 days ahead, save 10%">
+            </label>
+
+            <label class="wide">Blurb
+                <textarea name="blurb" rows="3" maxlength="400" required placeholder="Shown on the Deals page."></textarea>
+            </label>
+
+            <label>Percent off
+                <input type="number" name="percent" min="0" max="100" value="0" required>
+            </label>
+
+            <label>Free days
+                <input type="number" name="free_days" min="0" max="30" value="0" required>
+            </label>
+
+            <label>Minimum days
+                <input type="number" name="min_days" min="0" max="90" value="0" required>
+            </label>
+
+            <label>Days in advance
+                <input type="number" name="min_advance_days" min="0" max="365" value="0" required>
+            </label>
+
+            <label>Stackable
+                <select name="stackable">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </label>
+
+            <label>Expires
+                <input type="date" name="expires_at">
+            </label>
+
+            <label>Sort order
+                <input type="number" name="sort_order" min="0" max="99" value="0" required>
+            </label>
+
+            <div class="wide">
+                <button type="submit" class="ad-btn ad-ok">Add promo</button>
+                <span class="form-note">Leave the code blank for a standing offer with nothing to type in.</span>
+            </div>
+        </form>
+    </details>
+
+    <div class="filters admin-filters">
+        {% for v in views %}
+            <a class="filter-tab{{ v == filter ? ' is-active' : '' }}"
+               href="{{ path('admin_promo', {view: v}) }}">{{ v|capitalize }}</a>
+        {% endfor %}
+    </div>
+
+    {% if promos is empty %}
+
+        <div class="list-empty">
+            <p>No promos in this list.</p>
+        </div>
+
+    {% else %}
+
+        {% for p in promos %}
+            {% set expired = p.expires_at is not null and p.expires_at < today %}
+            {% set live_now = p.active == 1 and not expired %}
+
+            {% if expired %}
+                {% set pill_class = 'cancelled' %}
+                {% set pill_text = 'Expired' %}
+            {% elseif live_now %}
+                {% set pill_class = 'completed' %}
+                {% set pill_text = 'Live' %}
+            {% else %}
+                {% set pill_class = 'pending' %}
+                {% set pill_text = 'Off' %}
+            {% endif %}
+
+            <article class="ad-card promo-card{{ live_now ? '' : ' car-off' }}">
+
+                <div class="ad-body">
+
+                    <div class="bk-top">
+                        <div>
+                            <h2>{{ p.title }}</h2>
+                            <p class="bk-ref">
+                                {{ p.tag }} &middot;
+                                {{ p.code is null or p.code == '' ? 'no code needed' : p.code }}
+                            </p>
+                        </div>
+                        <span class="pill pill-{{ pill_class }}">{{ pill_text }}</span>
+                    </div>
+
+                    <p class="promo-rule">{{ rules.promo_rule(p) }}</p>
+                    <p class="promo-blurb">{{ p.blurb }}</p>
+
+                    <div class="bk-grid">
+                        <div><span>Discount</span><strong>{{ p.percent > 0 ? p.percent ~ '%' : '—' }}</strong><em>{{ p.free_days > 0 ? p.free_days ~ ' free day' ~ (p.free_days == 1 ? '' : 's') : 'no free days' }}</em></div>
+                        <div><span>Conditions</span><strong>{{ p.min_days > 0 ? p.min_days ~ ' days min' : 'Any length' }}</strong><em>{{ p.min_advance_days > 0 ? p.min_advance_days ~ ' days ahead' : 'any time' }}</em></div>
+                        <div><span>Expiry</span><strong>{{ p.expires_at is null ? 'None' : p.expires_at|date('M j, Y') }}</strong><em>sort {{ p.sort_order }}</em></div>
+                        <div><span>Used by</span><strong>{{ p.uses }}</strong><em>booking{{ p.uses == 1 ? '' : 's' }}</em></div>
+                    </div>
+
+                    {# edit form, collapsed #}
+                    <details class="adm-edit">
+                        <summary>Edit promo</summary>
+
+                        <form method="POST" action="{{ path('admin_promo', {view: filter}) }}" class="car-form">
+                            <input type="hidden" name="action" value="edit">
+                            <input type="hidden" name="promo_id" value="{{ p.id }}">
+                            <input type="hidden" name="view" value="{{ filter }}">
+
+                            <label>Code
+                                <input type="text" name="code" maxlength="20" value="{{ p.code }}">
+                            </label>
+
+                            <label>Tag
+                                <input type="text" name="tag" maxlength="30" value="{{ p.tag }}" required>
+                            </label>
+
+                            <label class="wide">Title
+                                <input type="text" name="title" maxlength="120" value="{{ p.title }}" required>
+                            </label>
+
+                            <label class="wide">Blurb
+                                <textarea name="blurb" rows="3" maxlength="400" required>{{ p.blurb }}</textarea>
+                            </label>
+
+                            <label>Percent off
+                                <input type="number" name="percent" min="0" max="100" value="{{ p.percent }}" required>
+                            </label>
+
+                            <label>Free days
+                                <input type="number" name="free_days" min="0" max="30" value="{{ p.free_days }}" required>
+                            </label>
+
+                            <label>Minimum days
+                                <input type="number" name="min_days" min="0" max="90" value="{{ p.min_days }}" required>
+                            </label>
+
+                            <label>Days in advance
+                                <input type="number" name="min_advance_days" min="0" max="365" value="{{ p.min_advance_days }}" required>
+                            </label>
+
+                            <label>Stackable
+                                <select name="stackable">
+                                    <option value="0"{{ p.stackable ? '' : ' selected' }}>No</option>
+                                    <option value="1"{{ p.stackable ? ' selected' : '' }}>Yes</option>
+                                </select>
+                            </label>
+
+                            <label>Expires
+                                <input type="date" name="expires_at" value="{{ p.expires_at }}">
+                            </label>
+
+                            <label>Sort order
+                                <input type="number" name="sort_order" min="0" max="99" value="{{ p.sort_order }}" required>
+                            </label>
+
+                            <div class="wide">
+                                <button type="submit" class="ad-btn ad-ok">Save changes</button>
+                            </div>
+                        </form>
+                    </details>
+
+                    <div class="bk-foot">
+                        <p class="bk-made">
+                            {% if expired %}
+                                Ran out on {{ p.expires_at|date('M j, Y') }}
+                            {% elseif live_now %}
+                                Showing on the Deals page
+                            {% else %}
+                                Hidden from customers
+                            {% endif %}
+                        </p>
+
+                        <div class="ad-actions">
+                            <form method="POST" action="{{ path('admin_promo', {view: filter}) }}">
+                                <input type="hidden" name="action" value="toggle">
+                                <input type="hidden" name="promo_id" value="{{ p.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <input type="hidden" name="active" value="{{ p.active ? '0' : '1' }}">
+                                <button type="submit" class="ad-btn {{ p.active ? 'ad-no' : 'ad-ok' }}">
+                                    {{ p.active ? 'Switch off' : 'Switch on' }}
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ path('admin_promo', {view: filter}) }}" onsubmit="return confirm('Delete this promo? Past bookings keep their code.');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="promo_id" value="{{ p.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <button type="submit" class="ad-btn ad-no">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+
+            </article>
+
+        {% endfor %}
+
+    {% endif %}
+{% endblock %}

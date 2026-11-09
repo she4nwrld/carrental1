@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Dashboard{% endblock %} &middot; Shift Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    {% endblock %}
+</head>
+<body class="adm">
+    {% include 'layout/_sidebar.html.twig' %}
+
+    <div class="adm-main">
+        {% include 'layout/_topbar.html.twig' with {'page_title': block('page_title')} %}
+
+        <div class="adm-body">
+            {% block page_head %}{% endblock %}
+
+            {% for message in app.flashes('success') %}
+                <div class="flash" role="status">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('warning') %}
+                <div class="flash flash-warn" role="status">{{ message }}</div>
+            {% endfor %}
+
+            {% block body %}{% endblock %}
+        </div>
+
+        {% include 'layout/_footer.html.twig' %}
+    </div>
+
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

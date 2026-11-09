@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reviews{% endblock %}
+{% block page_title %}Reviews{% endblock %}
+
+{% block page_head %}
+    <div class="list-head">
+        <h1>Customer reviews</h1>
+        <p class="book-sub">Hide anything abusive. Everything else stays live.</p>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="stat-grid">
+        <div class="stat">
+            <span>Total reviews</span>
+            <strong>{{ stats.total|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Live on site</span>
+            <strong>{{ stats.shown|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Hidden</span>
+            <strong>{{ stats.hidden|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Average rating</span>
+            <strong>{{ stats.avg_rating is null ? '—' : stats.avg_rating }}</strong>
+        </div>
+    </div>
+
+    <div class="filters admin-filters">
+        {% for v in views %}
+            <a class="filter-tab{{ v == filter ? ' is-active' : '' }}"
+               href="{{ path('admin_review', {view: v}) }}">{{ v|capitalize }}</a>
+        {% endfor %}
+    </div>
+
+    {% if reviews is empty %}
+
+        <div class="list-empty">
+            <p>No {{ filter == 'all' ? '' : filter ~ ' ' }}reviews to show.</p>
+        </div>
+
+    {% else %}
+
+        {% for rv in reviews %}
+
+            <article class="ad-card rv-row">
+
+                <div class="ad-body">
+
+                    <div class="bk-top">
+                        <div>
+                            <h2>{{ rv.full_name }}</h2>
+                            <p class="bk-ref"><a href="mailto:{{ rv.email }}">{{ rv.email }}</a></p>
+                        </div>
+                        <span class="pill pill-{{ rv.approved ? 'confirmed' : 'cancelled' }}">
+                            {{ rv.approved ? 'Live' : 'Hidden' }}
+                        </span>
+                    </div>
+
+                    <p class="rv-score">
+                        <span class="rv-stars" aria-hidden="true">{{ '★★★★★'|slice(0, rv.rating) }}{{ '☆☆☆☆☆'|slice(0, 5 - rv.rating) }}</span>
+                        <span class="rv-outof">{{ rv.rating }} of 5</span>
+                    </p>
+
+                    <p class="rv-text">{{ rv.review_text|nl2br }}</p>
+
+                    <div class="bk-foot">
+                        <p class="bk-made">Posted {{ rv.created_at|date('M j, Y g:i a') }}</p>
+
+                        <div class="ad-actions">
+                            <form method="POST" action="{{ path('admin_review', {view: filter}) }}">
+                                <input type="hidden" name="action" value="toggle">
+                                <input type="hidden" name="review_id" value="{{ rv.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <input type="hidden" name="approved" value="{{ rv.approved ? '0' : '1' }}">
+                                <button type="submit" class="ad-btn {{ rv.approved ? 'ad-no' : 'ad-ok' }}">
+                                    {{ rv.approved ? 'Hide' : 'Show' }}
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ path('admin_review', {view: filter}) }}" onsubmit="return confirm('Delete this review for good?');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="review_id" value="{{ rv.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <button type="submit" class="ad-btn ad-no">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+
+            </article>
+
+        {% endfor %}
+
+    {% endif %}
+{% endblock %}

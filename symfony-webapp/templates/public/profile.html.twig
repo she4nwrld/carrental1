@@ -1,0 +1,101 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}My Profile — Shift Car Rental{% endblock %}
+{% block main_class %}pf-wrap{% endblock %}
+
+{% block body %}
+
+  <div class="pf-head">
+    <h1>My Profile</h1>
+    <p class="pf-sub">Member since {{ me.created_at|date('F j, Y') }}</p>
+  </div>
+
+  {% if saved|default(false) %}
+    <div class="pf-flash">Your details have been updated.</div>
+  {% endif %}
+
+  {% if password_changed|default(false) %}
+    <div class="pf-flash">Your password has been changed.</div>
+  {% endif %}
+
+  <section class="pf-card">
+    <h2>Account details</h2>
+
+    {% if info_errors|default([]) is not empty %}
+      <div class="pf-errors" role="alert">
+        <ul>
+          {% for err in info_errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{{ path('profile') }}" class="pf-form" novalidate>
+      <input type="hidden" name="action" value="update_profile">
+
+      <div class="pf-field">
+        <label for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name" maxlength="100" required
+               value="{{ old.full_name|default(me.full_name) }}">
+      </div>
+
+      <div class="pf-field">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required
+               value="{{ old.email|default(me.email) }}">
+      </div>
+
+      <div class="pf-field">
+        <label for="phone">Mobile Number</label>
+        <input type="tel" id="phone" name="phone" required
+               placeholder="09171234567"
+               value="{{ old.phone|default(me.phone) }}">
+      </div>
+
+      <button type="submit" class="pf-btn">Save Changes</button>
+    </form>
+  </section>
+
+  <section class="pf-card">
+    <h2>Change password</h2>
+
+    {% if pass_errors|default([]) is not empty %}
+      <div class="pf-errors" role="alert">
+        <ul>
+          {% for err in pass_errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{{ path('profile') }}" class="pf-form" novalidate>
+      <input type="hidden" name="action" value="change_password">
+
+      <div class="pf-field">
+        <label for="current_password">Current Password</label>
+        <input type="password" id="current_password" name="current_password"
+               autocomplete="current-password" required>
+      </div>
+
+      <div class="pf-field">
+        <label for="new_password">New Password</label>
+        <input type="password" id="new_password" name="new_password"
+               autocomplete="new-password" required>
+        <small>At least 8 characters, with a letter, a number and a special character.</small>
+      </div>
+
+      <div class="pf-field">
+        <label for="confirm_password">Confirm New Password</label>
+        <input type="password" id="confirm_password" name="confirm_password"
+               autocomplete="new-password" required>
+      </div>
+
+      <button type="submit" class="pf-btn">Update Password</button>
+    </form>
+  </section>
+
+  <p class="pf-back"><a href="{{ path('bookings') }}">&larr; Back to my bookings</a></p>
+
+{% endblock %}

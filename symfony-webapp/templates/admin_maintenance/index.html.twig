@@ -1,0 +1,176 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Maintenance{% endblock %}
+{% block page_title %}Maintenance{% endblock %}
+
+{% block page_head %}
+    <div class="list-head">
+        <h1>Repairs and damage</h1>
+        <p class="book-sub">An open repair blocks new bookings for those dates. Bookings made earlier are not touched.</p>
+    </div>
+{% endblock %}
+
+{% block body %}
+    {# shown after logging a repair that lands on live bookings #}
+    {% for message in app.flashes('repair_conflict') %}
+        <div class="flash flash-warn" role="alert">
+            {{ message }} <a href="{{ path('admin_dashboard') }}">Open bookings</a>
+        </div>
+    {% endfor %}
+
+    <div class="stat-grid">
+        <div class="stat">
+            <span>Open jobs</span>
+            <strong>{{ stats.open_jobs|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Units off the road</span>
+            <strong>{{ off_road|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Finished jobs</span>
+            <strong>{{ stats.done_jobs|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Repair spend</span>
+            <strong>&#8369;{{ stats.spend|number_format }}</strong>
+            <em>all time</em>
+        </div>
+    </div>
+
+    <details class="adm-add">
+        <summary>Log a repair</summary>
+
+        <form method="POST" action="{{ path('admin_maintenance', {view: filter}) }}" class="car-form">
+            <input type="hidden" name="action" value="add">
+
+            <label>Vehicle
+                <select name="car_id" required>
+                    {% for unit in fleet %}
+                        <option value="{{ unit.id }}">{{ unit.name }} ({{ unit.type }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>Repair cost
+                <input type="number" name="cost" min="0" max="9999999" value="0">
+            </label>
+
+            <label>Off the road from
+                <input type="date" name="start_date" required>
+            </label>
+
+            <label>Back in service on
+                <input type="date" name="end_date" required>
+            </label>
+
+            <label class="wide">What happened
+                <input type="text" name="description" maxlength="200" required
+                       placeholder="Rear bumper cracked on return, panel beater booked">
+            </label>
+
+            <div class="wide">
+                <button type="submit" class="ad-btn ad-ok">Log repair</button>
+            </div>
+        </form>
+    </details>
+
+    <div class="filters admin-filters">
+        {% for v in views %}
+            <a class="filter-tab{{ v == filter ? ' is-active' : '' }}"
+               href="{{ path('admin_maintenance', {view: v}) }}">{{ v|capitalize }}</a>
+        {% endfor %}
+    </div>
+
+    {% if repairs is empty %}
+
+        <div class="list-empty">
+            <p>No repairs in this list.</p>
+        </div>
+
+    {% else %}
+
+        {% for job in repairs %}
+            {% set days = date(job.end_date).diff(date(job.start_date)).days %}
+
+            <article class="ad-card{{ job.resolved ? ' car-off' : '' }}">
+
+                <div class="ad-photo">
+                    <img src="{{ asset(job.car_img) }}" alt="{{ job.car_name }}" loading="lazy">
+                </div>
+
+                <div class="ad-body">
+
+                    <div class="bk-top">
+                        <div>
+                            <h2>{{ job.car_name }}</h2>
+                            <p class="bk-ref">{{ job.car_type }} &middot; job #{{ job.id }}</p>
+                        </div>
+                        <span class="pill pill-{{ job.resolved ? 'completed' : 'pending' }}">
+                            {{ job.resolved ? 'Finished' : 'In the shop' }}
+                        </span>
+                    </div>
+
+                    <div class="bk-grid">
+                        <div>
+                            <span>Off the road</span>
+                            <strong>{{ job.start_date|date('d M Y') }}</strong>
+                            <em>first day out</em>
+                        </div>
+                        <div>
+                            <span>Back in service</span>
+                            <strong>{{ job.end_date|date('d M Y') }}</strong>
+                            <em>{{ days }} day{{ days == 1 ? '' : 's' }}</em>
+                        </div>
+                        <div>
+                            <span>Cost</span>
+                            <strong>&#8369;{{ job.cost|number_format }}</strong>
+                        </div>
+                        <div>
+                            <span>Logged</span>
+                            <strong>{{ job.created_at|date('d M Y') }}</strong>
+                        </div>
+                    </div>
+
+                    <p class="bk-made">{{ job.description }}</p>
+
+                    {% if not job.resolved and job.clashes > 0 %}
+                        <p class="flash flash-warn">
+                            Overlaps {{ job.clashes }} active booking{{ job.clashes == 1 ? '' : 's' }}.
+                            <a href="{{ path('admin_dashboard') }}">Review on the bookings page</a>
+                        </p>
+                    {% endif %}
+
+                    <div class="bk-foot">
+                        <p class="bk-made">
+                            {{ job.resolved ? 'Not blocking any dates.' : 'Blocking new bookings for these dates.' }}
+                        </p>
+
+                        <div class="ad-actions">
+                            <form method="POST" action="{{ path('admin_maintenance', {view: filter}) }}">
+                                <input type="hidden" name="action" value="toggle">
+                                <input type="hidden" name="repair_id" value="{{ job.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <input type="hidden" name="resolved" value="{{ job.resolved ? '0' : '1' }}">
+                                <button type="submit" class="ad-btn {{ job.resolved ? 'ad-no' : 'ad-ok' }}">
+                                    {{ job.resolved ? 'Reopen job' : 'Mark finished' }}
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ path('admin_maintenance', {view: filter}) }}" onsubmit="return confirm('Delete this repair record for good?');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="repair_id" value="{{ job.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <button type="submit" class="ad-btn ad-no">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+
+            </article>
+
+        {% endfor %}
+
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Fees and Charges Guide — Shift Car Rental{% endblock %}
+{% block main_class %}page-main{% endblock %}
+
+{% block body %}
+
+  <section class="page-hero" id="fees-hero">
+    <h1>Fees and <span>Charges</span></h1>
+    <p>Every cost explained up front. No surprises at pick-up.</p>
+  </section>
+
+  <section class="faq-wrap" id="fees-list">
+    {% for group, items in fee_sections %}
+
+      <h2 class="faq-group">{{ group }}</h2>
+
+      {% for item in items %}
+        <details class="faq-item">
+          <summary>{{ item.h }}<span class="faq-caret" aria-hidden="true">&#8964;</span></summary>
+          <p>{{ item.p }}</p>
+        </details>
+      {% endfor %}
+
+    {% endfor %}
+
+    <p class="faq-still">
+      Not sure about a charge?
+      <a href="{{ path('contact') }}">Contact us</a> or call <a href="tel:+639123456789">+63 912 345 6789</a>.
+    </p>
+  </section>
+
+{% endblock %}

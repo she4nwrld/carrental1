@@ -1,0 +1,66 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Booking Submitted — Shift Car Rental{% endblock %}
+{% block main_class %}book-main{% endblock %}
+
+{% block body %}
+
+  <section class="success-card">
+
+    <div class="success-badge" aria-hidden="true">&#10003;</div>
+
+    <p class="success-ref">Booking reference &middot; <strong>SHIFT-{{ '%04d'|format(bk.id) }}</strong></p>
+    <h1>Your booking is in!</h1>
+    <p class="success-sub">
+      Thanks, {{ user_full_name|default(bk.fullName) }}. Your reservation is <strong>{{ bk.status }}</strong> &mdash;
+      we will call or message you to confirm the schedule before you pay anything.
+    </p>
+
+    <div class="success-car">
+      <img src="{{ asset(bk.carImg) }}" alt="{{ bk.carName }}">
+      <div>
+        <span class="car-tag">{{ bk.carType }}</span>
+        <h2>{{ bk.carName }}</h2>
+      </div>
+    </div>
+
+    <dl class="success-list">
+      <div><dt>Pick-up</dt><dd>{{ bk.pickupLocation }} &middot; {{ bk.pickupDate|date('M j, Y') }}</dd></div>
+      <div><dt>Return</dt><dd>{{ bk.returnLocation }} &middot; {{ bk.returnDate|date('M j, Y') }}</dd></div>
+      <div><dt>Duration</dt><dd>{{ bk.days }} {{ bk.days == 1 ? 'day' : 'days' }}</dd></div>
+      <div><dt>Driver age</dt><dd>{{ bk.driverAge }}</dd></div>
+    </dl>
+
+    <div class="book-total">
+      <ul class="quote">
+        <li>
+          <span>&#8369;{{ car_price|default((bk.subtotal / (bk.days > 0 ? bk.days : 1))|round)|number_format }} &times; {{ bk.days }} {{ bk.days == 1 ? 'day' : 'days' }}</span>
+          <strong>&#8369;{{ bk.subtotal|number_format }}</strong>
+        </li>
+        {% if bk.discount > 0 %}
+          <li class="quote-disc">
+            <span>Discount ({{ bk.discountCode }})</span>
+            <strong>&minus;&#8369;{{ bk.discount|number_format }}</strong>
+          </li>
+        {% endif %}
+        {% if bk.delivery %}
+          <li>
+            <span>Car delivery</span>
+            <strong>&#8369;{{ delivery_fee|default(500)|number_format }}</strong>
+          </li>
+        {% endif %}
+        <li class="quote-total">
+          <span>Total due on pick-up</span>
+          <strong>&#8369;{{ bk.total|number_format }}</strong>
+        </li>
+      </ul>
+    </div>
+
+    <div class="success-actions">
+      <a class="auth-btn" href="{{ path('bookings') }}">View My Bookings</a>
+      <a class="success-home" href="{{ path('home') }}">Back to Home</a>
+    </div>
+
+  </section>
+
+{% endblock %}

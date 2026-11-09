@@ -1,0 +1,258 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Fleet{% endblock %}
+{% block page_title %}Fleet{% endblock %}
+
+{% block page_head %}
+    <div class="list-head">
+        <h1>Vehicles</h1>
+        <p class="book-sub">Hiding a unit removes it from the site straight away.</p>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="stat-grid">
+        <div class="stat">
+            <span>Fleet size</span>
+            <strong>{{ stats.total|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>On the site</span>
+            <strong>{{ stats.live|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Hidden</span>
+            <strong>{{ stats.off|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Average rate</span>
+            <strong>&#8369;{{ stats.avg_price|number_format }}</strong>
+            <em>per day</em>
+        </div>
+    </div>
+
+    {# add form, collapsed until needed #}
+    <details class="adm-add">
+        <summary>Add a vehicle</summary>
+
+        <form method="POST" action="{{ path('admin_product', {view: filter}) }}" class="car-form">
+            <input type="hidden" name="action" value="add_car">
+
+            <label>Name
+                <input type="text" name="name" maxlength="60" required placeholder="Toyota Vios">
+            </label>
+
+            <label>Type
+                <select name="type" required>
+                    {% for t in types %}
+                        <option value="{{ t }}">{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>Rate per day
+                <input type="number" name="price" min="1" max="99999" required placeholder="2400">
+            </label>
+
+            <label>Gear
+                <select name="gear" required>
+                    <option value="Manual">Manual</option>
+                    <option value="Auto">Auto</option>
+                </select>
+            </label>
+
+            <label>Seats
+                <input type="number" name="seats" min="1" max="30" value="5" required>
+            </label>
+
+            <label>Doors
+                <input type="number" name="doors" min="1" max="10" value="5" required>
+            </label>
+
+            <label>Large bags
+                <input type="number" name="bag_large" min="0" max="20" value="2" required>
+            </label>
+
+            <label>Small bags
+                <input type="number" name="bag_small" min="0" max="20" value="2" required>
+            </label>
+
+            <label>Child seats
+                <input type="number" name="kids" min="0" max="10" value="1" required>
+            </label>
+
+            <label>Aircon
+                <select name="aircon">
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </label>
+
+            <label class="wide">Image path
+                <input type="text" name="img" maxlength="120" required placeholder="images/toyota-vios.png">
+            </label>
+
+            <div class="wide">
+                <button type="submit" class="ad-btn ad-ok">Add vehicle</button>
+            </div>
+        </form>
+    </details>
+
+    <div class="filters admin-filters">
+        {% for v in views %}
+            <a class="filter-tab{{ v == filter ? ' is-active' : '' }}"
+               href="{{ path('admin_product', {view: v}) }}">{{ v|capitalize }}</a>
+        {% endfor %}
+    </div>
+
+    {% if cars is empty %}
+
+        <div class="list-empty">
+            <p>No vehicles in this list.</p>
+        </div>
+
+    {% else %}
+
+        {% for car in cars %}
+
+            <article class="ad-card{{ car.available ? '' : ' car-off' }}">
+
+                <div class="ad-photo">
+                    <img src="{{ asset(car.img) }}" alt="{{ car.name }}" loading="lazy">
+                </div>
+
+                <div class="ad-body">
+
+                    <div class="bk-top">
+                        <div>
+                            <h2>{{ car.name }}</h2>
+                            <p class="bk-ref">{{ car.type }} &middot; unit #{{ car.id }}</p>
+                        </div>
+                        <span class="pill pill-{{ car.available ? 'completed' : 'cancelled' }}">
+                            {{ car.available ? 'On site' : 'Hidden' }}
+                        </span>
+                    </div>
+
+                    <div class="bk-grid">
+                        <div><span>Rate</span><strong>&#8369;{{ car.price|number_format }}</strong><em>per day</em></div>
+                        <div><span>Seats / doors</span><strong>{{ car.seats }} / {{ car.doors }}</strong><em>{{ car.gear }}{{ car.aircon ? ' · aircon' : '' }}</em></div>
+                        <div><span>Luggage</span><strong>{{ car.bag_large }} large, {{ car.bag_small }} small</strong><em>{{ car.kids }} child seat{{ car.kids == 1 ? '' : 's' }}</em></div>
+                        <div><span>Bookings</span><strong>{{ car.bookings }}</strong><em>{{ car.live }} active</em></div>
+                    </div>
+
+                    {% if car.repair_note is not null %}
+                        <p class="flash flash-warn">
+                            In the shop until {{ car.repair_until|date('d M Y') }} &mdash;
+                            {{ car.repair_note }}
+                            <a href="{{ path('admin_maintenance') }}">Manage repairs</a>
+                        </p>
+                    {% endif %}
+
+                    {# edit form, collapsed #}
+                    <details class="adm-edit">
+                        <summary>Edit details</summary>
+
+                        <form method="POST" action="{{ path('admin_product', {view: filter}) }}" class="car-form">
+                            <input type="hidden" name="action" value="edit_car">
+                            <input type="hidden" name="car_id" value="{{ car.id }}">
+                            <input type="hidden" name="view" value="{{ filter }}">
+
+                            <label>Name
+                                <input type="text" name="name" maxlength="60" value="{{ car.name }}" required>
+                            </label>
+
+                            <label>Type
+                                <select name="type" required>
+                                    {% for t in types %}
+                                        <option value="{{ t }}"{{ t == car.type ? ' selected' : '' }}>{{ t }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                            <label>Rate per day
+                                <input type="number" name="price" min="1" max="99999" value="{{ car.price }}" required>
+                            </label>
+
+                            <label>Gear
+                                <select name="gear" required>
+                                    <option value="Manual"{{ car.gear == 'Manual' ? ' selected' : '' }}>Manual</option>
+                                    <option value="Auto"{{ car.gear == 'Auto' ? ' selected' : '' }}>Auto</option>
+                                </select>
+                            </label>
+
+                            <label>Seats
+                                <input type="number" name="seats" min="1" max="30" value="{{ car.seats }}" required>
+                            </label>
+
+                            <label>Doors
+                                <input type="number" name="doors" min="1" max="10" value="{{ car.doors }}" required>
+                            </label>
+
+                            <label>Large bags
+                                <input type="number" name="bag_large" min="0" max="20" value="{{ car.bag_large }}" required>
+                            </label>
+
+                            <label>Small bags
+                                <input type="number" name="bag_small" min="0" max="20" value="{{ car.bag_small }}" required>
+                            </label>
+
+                            <label>Child seats
+                                <input type="number" name="kids" min="0" max="10" value="{{ car.kids }}" required>
+                            </label>
+
+                            <label>Aircon
+                                <select name="aircon">
+                                    <option value="1"{{ car.aircon ? ' selected' : '' }}>Yes</option>
+                                    <option value="0"{{ car.aircon ? '' : ' selected' }}>No</option>
+                                </select>
+                            </label>
+
+                            <label class="wide">Image path
+                                <input type="text" name="img" maxlength="120" value="{{ car.img }}" required>
+                            </label>
+
+                            <div class="wide">
+                                <button type="submit" class="ad-btn ad-ok">Save changes</button>
+                            </div>
+                        </form>
+                    </details>
+
+                    <div class="bk-foot">
+                        <p class="bk-made">
+                            {% if car.live > 0 %}
+                                Held by {{ car.live }} active booking{{ car.live == 1 ? '' : 's' }}
+                            {% else %}
+                                No active bookings
+                            {% endif %}
+                        </p>
+
+                        <div class="ad-actions">
+                            <form method="POST" action="{{ path('admin_product', {view: filter}) }}">
+                                <input type="hidden" name="action" value="toggle_car">
+                                <input type="hidden" name="car_id" value="{{ car.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <input type="hidden" name="available" value="{{ car.available ? '0' : '1' }}">
+                                <button type="submit" class="ad-btn {{ car.available ? 'ad-no' : 'ad-ok' }}">
+                                    {{ car.available ? 'Hide from site' : 'Put on site' }}
+                                </button>
+                            </form>
+
+                            {% if car.bookings == 0 %}
+                                <form method="POST" action="{{ path('admin_product', {view: filter}) }}" onsubmit="return confirm('Delete this vehicle for good?');">
+                                    <input type="hidden" name="action" value="drop_car">
+                                    <input type="hidden" name="car_id" value="{{ car.id }}">
+                                    <input type="hidden" name="view" value="{{ filter }}">
+                                    <button type="submit" class="ad-btn ad-no">Delete</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+
+            </article>
+
+        {% endfor %}
+
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inbox{% endblock %}
+{% block page_title %}Inbox{% endblock %}
+
+{% block page_head %}
+    <div class="list-head">
+        <h1>Contact messages</h1>
+        <p class="book-sub">Everything sent through the contact form.</p>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="stat-grid">
+        <div class="stat{{ stats.unread > 0 ? ' stat-warn' : '' }}">
+            <span>Unread</span>
+            <strong>{{ stats.unread|number_format }}</strong>
+            <em>needs a reply</em>
+        </div>
+        <div class="stat">
+            <span>All messages</span>
+            <strong>{{ stats.total|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>Last 7 days</span>
+            <strong>{{ stats.week|number_format }}</strong>
+        </div>
+        <div class="stat">
+            <span>From account holders</span>
+            <strong>{{ stats.members|number_format }}</strong>
+            <em>{{ (stats.total - stats.members)|number_format }} from guests</em>
+        </div>
+    </div>
+
+    <div class="filters admin-filters">
+        {% for v in views %}
+            <a class="filter-tab{{ v == filter ? ' is-active' : '' }}{{ v == 'unread' and stats.unread > 0 ? ' tab-warn' : '' }}"
+               href="{{ path('admin_message', {view: v}) }}">{{ v|capitalize }}</a>
+        {% endfor %}
+    </div>
+
+    {% if messages is empty %}
+
+        <div class="list-empty">
+            <p>No {{ filter == 'all' ? '' : filter ~ ' ' }}messages.</p>
+        </div>
+
+    {% else %}
+
+        {% for m in messages %}
+
+            <article class="ad-card msg-card{{ m.is_read == 0 ? ' msg-new' : '' }}">
+
+                <div class="ad-body">
+
+                    <div class="bk-top">
+                        <div>
+                            <h2>{{ m.name }}</h2>
+                            <p class="bk-ref">
+                                {{ m.created_at|date('M j, Y g:i a') }}
+                                {% if m.account_name is not null %}
+                                    &middot; account holder
+                                {% else %}
+                                    &middot; guest
+                                {% endif %}
+                            </p>
+                        </div>
+                        <span class="pill pill-{{ m.is_read == 0 ? 'pending' : 'completed' }}">
+                            {{ m.is_read == 0 ? 'Unread' : 'Read' }}
+                        </span>
+                    </div>
+
+                    <div class="ad-customer">
+                        <a href="mailto:{{ m.email }}">{{ m.email }}</a>
+                        {% if m.phone is not null and m.phone != '' %}
+                            <a href="tel:{{ m.phone }}">{{ m.phone }}</a>
+                        {% else %}
+                            <span class="msg-nophone">no number given</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="msg-body">{{ m.body|nl2br }}</p>
+
+                    <div class="bk-foot">
+                        <p class="bk-made">
+                            <a href="mailto:{{ m.email }}?subject={{ 'Re: your message to Shift Car Rental'|url_encode }}">
+                                Reply by email
+                            </a>
+                        </p>
+
+                        <div class="ad-actions">
+                            <form method="POST" action="{{ path('admin_message', {view: filter}) }}">
+                                <input type="hidden" name="action" value="toggle">
+                                <input type="hidden" name="message_id" value="{{ m.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <input type="hidden" name="is_read" value="{{ m.is_read == 0 ? '1' : '0' }}">
+                                <button type="submit" class="ad-btn {{ m.is_read == 0 ? 'ad-ok' : 'ad-no' }}">
+                                    {{ m.is_read == 0 ? 'Mark handled' : 'Mark unread' }}
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ path('admin_message', {view: filter}) }}" onsubmit="return confirm('Delete this message?');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="message_id" value="{{ m.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <button type="submit" class="ad-btn ad-no">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+
+            </article>
+
+        {% endfor %}
+
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Shift Car Rental &mdash; Dumaguete City, Sibulan &amp; Valencia{% endblock %}</title>
+<link rel="icon" type="image/png" href="{{ asset('images/shift-mark.png') }}?v=2">
+<link rel="apple-touch-icon" href="{{ asset('images/shift-mark.png') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+{% endblock %}
+</head>
+
+<body>
+
+{# para sa keyboard users, mo-laktaw sa tibuok nav #}
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+{% include 'public/_header.html.twig' %}
+
+{# target sa skip link, walay gilapdon so dili makaguba sa layout #}
+<span id="main-content" tabindex="-1"></span>
+
+{% set _mc %}{% block main_class %}{% endblock %}{% endset %}
+<main{% if _mc|trim is not empty %} class="{{ _mc|trim }}"{% endif %}>
+    {% block body %}{% endblock %}
+</main>
+
+{% include 'public/_footer.html.twig' %}
+
+<script src="{{ asset('js/app.js') }}" defer></script>
+{% block javascripts %}{% endblock %}
+
+</body>
+</html>

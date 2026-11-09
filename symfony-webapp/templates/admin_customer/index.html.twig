@@ -1,0 +1,165 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Customers{% endblock %}
+{% block page_title %}Customers{% endblock %}
+
+{% block page_head %}
+    <div class="list-head">
+        <h1>Registered customers</h1>
+        <p class="book-sub">Highest spend first. Admin accounts are left out.</p>
+    </div>
+{% endblock %}
+
+{% block body %}
+    {# one-time reveal of a freshly issued password #}
+    {% for temp_password in app.flashes('temp_password') %}
+        <div class="flash">
+            Temporary password: <strong>{{ temp_password }}</strong> &mdash;
+            give this to the customer and ask them to change it from their profile page.
+            This will not be shown again.
+        </div>
+    {% endfor %}
+
+    <div class="stat-grid">
+        <div class="stat">
+            <span>Accounts</span>
+            <strong>{{ stats.total|number_format }}</strong>
+            <em>{{ stats.fresh|number_format }} joined this month</em>
+        </div>
+        <div class="stat">
+            <span>Have booked</span>
+            <strong>{{ stats.buyers|number_format }}</strong>
+            <em>{{ (stats.total - stats.buyers)|number_format }} never have</em>
+        </div>
+        <div class="stat{{ stats.disabled > 0 ? ' stat-warn' : '' }}">
+            <span>Disabled</span>
+            <strong>{{ stats.disabled|number_format }}</strong>
+            <em>cannot log in</em>
+        </div>
+        <div class="stat">
+            <span>Total booked</span>
+            <strong>&#8369;{{ stats.revenue|number_format }}</strong>
+            <em>confirmed + completed</em>
+        </div>
+        <div class="stat">
+            <span>Average per customer</span>
+            <strong>&#8369;{{ (stats.buyers > 0 ? (stats.revenue / stats.buyers)|round : 0)|number_format }}</strong>
+            <em>of those who booked</em>
+        </div>
+    </div>
+
+    <form method="GET" action="{{ path('admin_customer') }}" class="adm-search">
+        <input type="hidden" name="view" value="{{ filter }}">
+        <input type="search" name="q" value="{{ term }}" placeholder="Search name, email or phone">
+        <button type="submit" class="ad-btn ad-ok">Search</button>
+        {% if term != '' %}
+            <a class="ad-btn ad-no" href="{{ path('admin_customer', {view: filter}) }}">Clear</a>
+        {% endif %}
+    </form>
+
+    <div class="filters admin-filters">
+        {% for v in views %}
+            <a class="filter-tab{{ v == filter ? ' is-active' : '' }}"
+               href="{{ path('admin_customer', term != '' ? {view: v, q: term} : {view: v}) }}">
+                {{ labels[v] }}
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if customers is empty %}
+
+        <div class="list-empty">
+            <p>{{ term != '' ? 'Nobody matches "' ~ term ~ '".' : 'No customers in this list.' }}</p>
+        </div>
+
+    {% else %}
+
+        <div class="cust-table">
+
+            <div class="cust-row cust-head">
+                <span>Customer</span>
+                <span>Contact</span>
+                <span>Bookings</span>
+                <span>Booked value</span>
+                <span>Status</span>
+                <span>Actions</span>
+            </div>
+
+            {% for u in customers %}
+
+                <div class="cust-row{{ u.is_active == 0 ? ' cust-off' : '' }}">
+
+                    <span class="cust-who">
+                        <strong>{{ u.full_name }}</strong>
+                        <em>
+                            {% if u.bookings == 0 %}
+                                Joined {{ u.created_at|date('M j, Y') }} &middot; no bookings yet
+                            {% else %}
+                                Last booked {{ u.last_booked|date('M j, Y') }}
+                            {% endif %}
+                        </em>
+                    </span>
+
+                    <span class="cust-contact">
+                        <a href="mailto:{{ u.email }}">{{ u.email }}</a>
+                        <a href="tel:{{ u.phone }}">{{ u.phone }}</a>
+                    </span>
+
+                    <span class="cust-count">
+                        <strong>{{ u.bookings }}</strong>
+                        <em>
+                            {{ u.live }} active &middot; {{ u.done }} done
+                            {{- u.reviews > 0 ? ' · ' ~ u.reviews ~ ' review' ~ (u.reviews == 1 ? '' : 's') : '' }}
+                        </em>
+                    </span>
+
+                    <span class="cust-spend">
+                        <strong>&#8369;{{ u.spent|number_format }}</strong>
+                    </span>
+
+                    <span class="cust-status">
+                        <span class="pill {{ u.is_active == 1 ? 'pill-completed' : 'pill-cancelled' }}">
+                            {{ u.is_active == 1 ? 'Active' : 'Disabled' }}
+                        </span>
+                    </span>
+
+                    <span class="cust-actions">
+
+                        <form method="POST" action="{{ path('admin_customer', {view: filter}) }}">
+                            <input type="hidden" name="action" value="toggle">
+                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                            <input type="hidden" name="is_active" value="{{ u.is_active == 1 ? '0' : '1' }}">
+                            <input type="hidden" name="view" value="{{ filter }}">
+                            <button type="submit" class="ad-btn {{ u.is_active == 1 ? 'ad-no' : 'ad-ok' }}">
+                                {{ u.is_active == 1 ? 'Disable' : 'Enable' }}
+                            </button>
+                        </form>
+
+                        <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" onsubmit="return confirm('Issue a temporary password for this customer?');">
+                            <input type="hidden" name="action" value="reset_password">
+                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                            <input type="hidden" name="view" value="{{ filter }}">
+                            <button type="submit" class="ad-btn ad-ok">Reset password</button>
+                        </form>
+
+                        {% if u.bookings == 0 %}
+                            <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" onsubmit="return confirm('Delete this customer for good? This cannot be undone.');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="user_id" value="{{ u.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <button type="submit" class="ad-btn ad-no">Delete</button>
+                            </form>
+                        {% else %}
+                            <span class="ad-done" title="Customers with bookings on file cannot be deleted.">Has history</span>
+                        {% endif %}
+
+                    </span>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+{% endblock %}

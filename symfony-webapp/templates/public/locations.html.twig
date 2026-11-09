@@ -1,0 +1,52 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Our Locations — Shift Car Rental{% endblock %}
+{% block main_class %}page-main{% endblock %}
+
+{% block body %}
+
+  <section class="page-hero" id="locations-hero">
+    <h1>Our <span>Locations</span></h1>
+    <p>Pick-up, return and delivery across Negros Oriental.</p>
+  </section>
+
+  <section class="loc-detail-list" id="branches">
+    {% for branch in branches %}
+
+      <article class="loc-detail">
+        <div class="loc-detail-photo">
+          <img src="{{ asset(branch.img) }}" alt="{{ branch.name }} pick-up point" loading="lazy">
+        </div>
+
+        <div class="loc-detail-body">
+          <span class="loc-pin" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+          </span>
+          <h2>{{ branch.name }}</h2>
+          <p class="loc-detail-note">{{ branch.note }}</p>
+          <p>{{ branch.desc }}</p>
+          <ul class="loc-detail-meta">
+            <li><strong>Address:</strong> {{ branch.addr }}</li>
+            <li><strong>Hours:</strong> {{ branch.hours }}</li>
+            <li><strong>Phone:</strong> <a href="tel:+639123456789">+63 912 345 6789</a></li>
+          </ul>
+          <a class="promo-btn" href="{{ path('home') }}#our-vehicles">Book from here <span aria-hidden="true">&#8599;</span></a>
+        </div>
+      </article>
+
+    {% endfor %}
+  </section>
+
+  <section class="loc-delivery" id="delivery-areas">
+    <div class="sec-head">
+      <h2>Car <span>Delivery</span></h2>
+      <p>No branch near you? We deliver the unit to your hotel or resort for a flat &#8369;500 fee.</p>
+    </div>
+    <div class="loc-delivery-pills">
+      {% for area in delivery_areas %}
+        <span class="filter-tab">{{ area }}</span>
+      {% endfor %}
+    </div>
+  </section>
+
+{% endblock %}

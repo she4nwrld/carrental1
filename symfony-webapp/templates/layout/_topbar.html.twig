@@ -1,0 +1,9 @@
+{% set who = admin_name|default(app.user ? app.user.fullName : 'Admin') %}
+{% set init = admin_initial|default(who|trim|slice(0, 1)|upper ?: 'A') %}
+<header class="adm-top">
+    <h1>{{ page_title }}</h1>
+    <div class="adm-user">
+        <span class="adm-avatar" aria-hidden="true">{{ init }}</span>
+        <span class="adm-who">{{ who }}</span>
+    </div>
+</header>

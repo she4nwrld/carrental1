@@ -1,0 +1,33 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Terms and Conditions — Shift Car Rental{% endblock %}
+{% block main_class %}page-main{% endblock %}
+
+{% block body %}
+
+  <section class="page-hero" id="terms-hero">
+    <h1>Terms and <span>Conditions</span></h1>
+    <p>The rules that apply to every Shift rental.</p>
+  </section>
+
+  <section class="faq-wrap" id="terms-list">
+    {% for group, items in term_sections %}
+
+      <h2 class="faq-group">{{ group }}</h2>
+
+      {% for item in items %}
+        <details class="faq-item">
+          <summary>{{ item.h }}<span class="faq-caret" aria-hidden="true">&#8964;</span></summary>
+          <p>{{ item.p }}</p>
+        </details>
+      {% endfor %}
+
+    {% endfor %}
+
+    <p class="faq-still">
+      Questions about these terms?
+      <a href="{{ path('contact') }}">Contact us</a> or call <a href="tel:+639123456789">+63 912 345 6789</a>.
+    </p>
+  </section>
+
+{% endblock %}

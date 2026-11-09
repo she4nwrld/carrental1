@@ -1,0 +1,73 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Contact Us — Shift Car Rental{% endblock %}
+{% block main_class %}page-main{% endblock %}
+
+{% block body %}
+
+  <section class="page-hero" id="contact-hero">
+    <h1>Contact <span>Us</span></h1>
+    <p>Questions about a booking, delivery or long-term rental? Message us and we reply within the day.</p>
+  </section>
+
+  <section class="contact-wrap" id="contact-body">
+
+    <!-- wala: mga paagi sa pag-contact -->
+    <aside class="contact-info">
+      <h2>Get in touch</h2>
+      <ul>
+        <li><strong>Phone / Viber:</strong> <a href="tel:+639123456789">+63 912 345 6789</a></li>
+        <li><strong>Email:</strong> <a href="mailto:hello@shiftcarrental.ph">hello@shiftcarrental.ph</a></li>
+        <li><strong>Main office:</strong> Rizal Boulevard, Dumaguete City, Negros Oriental 6200</li>
+        <li><strong>Hours:</strong> Mon&ndash;Sun 7:00 am &ndash; 11:00 pm</li>
+      </ul>
+      <p>For urgent roadside help during a rental, use the 24/7 number in your glovebox card.</p>
+    </aside>
+
+    <!-- tuo: message form -->
+    <div class="contact-form-side">
+
+      {% if sent|default(false) %}
+        <p class="contact-sent">Thanks! Your message has been received &mdash; we will get back to you within the day.</p>
+      {% endif %}
+
+      {% if errors|default([]) is not empty %}
+        <div class="auth-errors">
+          <ul>
+            {% for err in errors %}
+              <li>{{ err }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{{ path('contact') }}" novalidate>
+
+        <div class="auth-field">
+          <label for="contact-name">Name</label>
+          <input type="text" id="contact-name" name="name" value="{{ old.name|default('') }}" required>
+        </div>
+
+        <div class="auth-field">
+          <label for="contact-email">Email</label>
+          <input type="email" id="contact-email" name="email" value="{{ old.email|default('') }}" required>
+        </div>
+
+        <div class="auth-field">
+          <label for="contact-phone">Mobile number (optional)</label>
+          <input type="tel" id="contact-phone" name="phone" value="{{ old.phone|default('') }}" placeholder="09171234567">
+        </div>
+
+        <div class="auth-field">
+          <label for="contact-message">Message</label>
+          <textarea id="contact-message" name="message" rows="6" required>{{ old.message|default('') }}</textarea>
+        </div>
+
+        <button class="auth-btn" type="submit">Send Message</button>
+
+      </form>
+    </div>
+
+  </section>
+
+{% endblock %}
