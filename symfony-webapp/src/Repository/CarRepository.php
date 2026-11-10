@@ -36,7 +36,8 @@ class CarRepository extends ServiceEntityRepository
             $conn = $em->getConnection();
             $schemaManager = $conn->createSchemaManager();
 
-            if (!$schemaManager->tablesExist(['car', 'booking', 'promo', 'maintenance_record', 'review', 'message', 'user'])) {
+            $carColumns = $schemaManager->listTableColumns('car');
+            if (!$schemaManager->tablesExist(['car', 'booking', 'promo', 'maintenance_record', 'review', 'message', 'user']) || !isset($carColumns['created_by'])) {
                 $metadata = $em->getMetadataFactory()->getAllMetadata();
                 if (!empty($metadata)) {
                     $schemaTool = new SchemaTool($em);
@@ -85,6 +86,16 @@ class CarRepository extends ServiceEntityRepository
                         ->setPassword(password_hash('staff123', \PASSWORD_BCRYPT));
                     $em->persist($staff);
                     $em->flush();
+                }
+
+                // butangan ug created_by ang sample cars para ma-test ang staff ownership
+                $staffId = (int) $conn->fetchOne("SELECT id FROM `user` WHERE username = 'staff@shift.ph'");
+                $adminId = (int) $conn->fetchOne("SELECT id FROM `user` WHERE username = 'sheene@admin.com'");
+                if ($staffId > 0) {
+                    $conn->executeStatement('UPDATE car SET created_by = ? WHERE created_by IS NULL AND name IN (?, ?)', [$staffId, 'Toyota Corolla Altis', 'Kia Picanto']);
+                }
+                if ($adminId > 0) {
+                    $conn->executeStatement('UPDATE car SET created_by = ? WHERE created_by IS NULL', [$adminId]);
                 }
             }
 

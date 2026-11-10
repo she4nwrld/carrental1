@@ -3,10 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Car;
+use App\Entity\User;
 use App\Repository\BookingRepository;
 use App\Repository\CarRepository;
 use App\Repository\MaintenanceRecordRepository;
 use App\Repository\MessageRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_STAFF')]
 class AdminProductController extends AbstractController
 {
-    private const VIEWS = ['all', 'available', 'hidden'];
+    private const VIEWS = ['all', 'available', 'hidden', 'mine'];
 
     /** The public filter categories, minus the "All" pill. */
     private const TYPES = ['Hatchback', 'Sedan', 'SUV', 'MPV'];
@@ -29,26 +31,46 @@ class AdminProductController extends AbstractController
         BookingRepository $bookingRepository,
         MaintenanceRecordRepository $maintenanceRepository,
         MessageRepository $messageRepository,
+        UserRepository $userRepository,
         EntityManagerInterface $em,
     ): Response {
         $filter = (string) $request->query->get('view', 'all');
         if (!\in_array($filter, self::VIEWS, true)) {
             $filter = 'all';
         }
+        $term = trim((string) $request->query->get('q', ''));
 
         $dbReady = $carRepository->ensureSeeded();
+        $user = $this->getUser();
+        $currentUserId = $user instanceof User ? $user->getId() : null;
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
 
         if ($dbReady && $request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_product_action', (string) $request->request->get('_token'))) {
+                $this->addFlash('warning', 'Invalid security token. Please try again.');
+
+                return $this->redirectToRoute('admin_product', ['view' => $filter]);
+            }
+
             $action = (string) $request->request->get('action', '');
             $carId = (int) $request->request->get('car_id', 0);
             $viewRedirect = (string) $request->request->get('view', $filter);
 
             if (\in_array($action, ['add', 'add_car'], true)) {
+                $name = trim((string) $request->request->get('name', ''));
+                $price = (int) $request->request->get('price', 0);
+
+                if ('' === $name || $price < 1) {
+                    $this->addFlash('warning', 'Please provide a valid vehicle name and daily rate.');
+
+                    return $this->redirectToRoute('admin_product', ['view' => $viewRedirect]);
+                }
+
                 $type = (string) $request->request->get('type', 'Sedan');
                 $car = (new Car())
-                    ->setName((string) $request->request->get('name', 'New Vehicle'))
+                    ->setName($name)
                     ->setType($type)
-                    ->setPrice(max(1, (int) $request->request->get('price', 2200)))
+                    ->setPrice(max(1, $price))
                     ->setGear((string) $request->request->get('gear', 'Manual'))
                     ->setSeats(max(1, (int) $request->request->get('seats', 5)))
                     ->setDoors(max(1, (int) $request->request->get('doors', 5)))
@@ -57,11 +79,21 @@ class AdminProductController extends AbstractController
                     ->setKids(max(0, (int) $request->request->get('kids', 1)))
                     ->setAircon((bool) $request->request->get('aircon', 1))
                     ->setImg((string) $request->request->get('img', 'images/toyota-vios.png'))
-                    ->setAvailable(true);
+                    ->setAvailable(true)
+                    ->setCreatedBy($currentUserId);
                 $em->persist($car);
                 $em->flush();
                 $this->addFlash('success', 'Vehicle added to the fleet.');
             } elseif ($carId > 0 && ($car = $carRepository->find($carId))) {
+                // admin makausab bisan unsa, staff ang iyaha ra nga gi-add
+                $canModify = $isAdmin || (null !== $currentUserId && $car->getCreatedBy() === $currentUserId);
+
+                if (!$canModify) {
+                    $this->addFlash('warning', 'Staff can only edit or delete vehicles they created.');
+
+                    return $this->redirectToRoute('admin_product', ['view' => $viewRedirect]);
+                }
+
                 if (\in_array($action, ['edit', 'edit_car'], true)) {
                     $car
                         ->setName((string) $request->request->get('name', $car->getName()))
@@ -96,8 +128,12 @@ class AdminProductController extends AbstractController
             $allCarEntities = $carRepository->findBy([], ['type' => 'ASC', 'name' => 'ASC']);
             $allBookings = $bookingRepository->findAll();
             $openRepairs = $maintenanceRepository->findBy(['resolved' => false]);
+            $usersById = [];
+            foreach ($userRepository->findAll() as $u) {
+                $usersById[$u->getId()] = $u->getFullName();
+            }
 
-            $populateMeta = static function (Car $c) use ($allBookings, $openRepairs): array {
+            $populateMeta = static function (Car $c) use ($allBookings, $openRepairs, $usersById, $currentUserId, $isAdmin): array {
                 $totalBk = 0;
                 $liveBk = 0;
                 foreach ($allBookings as $b) {
@@ -118,6 +154,10 @@ class AdminProductController extends AbstractController
                     }
                 }
 
+                $creatorId = $c->getCreatedBy();
+                $isMine = null !== $currentUserId && $creatorId === $currentUserId;
+                $ownerName = null !== $creatorId && isset($usersById[$creatorId]) ? $usersById[$creatorId] : 'Admin';
+
                 return [
                     'id' => $c->getId(),
                     'name' => $c->getName(),
@@ -136,6 +176,10 @@ class AdminProductController extends AbstractController
                     'live' => $liveBk,
                     'repair_note' => $repNote,
                     'repair_until' => $repUntil,
+                    'created_by' => $creatorId,
+                    'owner_name' => $isMine ? 'You (' . $ownerName . ')' : $ownerName,
+                    'is_mine' => $isMine,
+                    'can_edit' => $isAdmin || $isMine,
                 ];
             };
 
@@ -166,10 +210,22 @@ class AdminProductController extends AbstractController
 
         $cars = array_values(array_filter(
             $all,
-            static fn (array $car): bool => match ($filter) {
-                'available' => 1 === (int) $car['available'],
-                'hidden' => 0 === (int) $car['available'],
-                default => true,
+            static function (array $car) use ($filter, $term): bool {
+                $matchesTab = match ($filter) {
+                    'available' => 1 === (int) $car['available'],
+                    'hidden' => 0 === (int) $car['available'],
+                    'mine' => !empty($car['is_mine']),
+                    default => true,
+                };
+                if (!$matchesTab) {
+                    return false;
+                }
+                if ('' === $term) {
+                    return true;
+                }
+                $haystack = strtolower($car['name'] . ' ' . $car['type'] . ' ' . $car['gear'] . ' ' . ($car['owner_name'] ?? ''));
+
+                return str_contains($haystack, strtolower($term));
             }
         ));
 
@@ -177,6 +233,7 @@ class AdminProductController extends AbstractController
             'stats' => $stats,
             'views' => self::VIEWS,
             'filter' => $filter,
+            'term' => $term,
             'types' => self::TYPES,
             'cars' => $cars,
             'unread' => $unread,

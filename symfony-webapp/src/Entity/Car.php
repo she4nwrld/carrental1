@@ -49,6 +49,9 @@ class Car
     #[ORM\Column]
     private bool $available = true;
 
+    #[ORM\Column(name: 'created_by', nullable: true)]
+    private ?int $createdBy = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -214,6 +217,18 @@ class Car
     public function setAvailable(bool $available): static
     {
         $this->available = $available;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?int
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?int $createdBy): static
+    {
+        $this->createdBy = $createdBy;
 
         return $this;
     }

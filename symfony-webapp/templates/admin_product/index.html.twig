@@ -36,6 +36,7 @@
         <summary>Add a vehicle</summary>
 
         <form method="POST" action="{{ path('admin_product', {view: filter}) }}" class="car-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_product_action') }}">
             <input type="hidden" name="action" value="add_car">
 
             <label>Name
@@ -98,11 +99,22 @@
         </form>
     </details>
 
-    <div class="filters admin-filters">
-        {% for v in views %}
-            <a class="filter-tab{{ v == filter ? ' is-active' : '' }}"
-               href="{{ path('admin_product', {view: v}) }}">{{ v|capitalize }}</a>
-        {% endfor %}
+    <div class="adm-bar">
+        <div class="filters admin-filters">
+            {% for v in views %}
+                <a class="filter-tab{{ v == filter ? ' is-active' : '' }}"
+                   href="{{ path('admin_product', {view: v, q: term|default('')}) }}">{{ v == 'mine' ? 'My Records' : v|capitalize }}</a>
+            {% endfor %}
+        </div>
+
+        <form method="GET" action="{{ path('admin_product') }}" class="adm-search">
+            <input type="hidden" name="view" value="{{ filter }}">
+            <input type="search" name="q" value="{{ term|default('') }}" placeholder="Search vehicle, type or creator">
+            <button type="submit" class="ad-btn ad-ok">Search</button>
+            {% if term|default('') != '' %}
+                <a class="ad-btn ad-no" href="{{ path('admin_product', {view: filter}) }}">Clear</a>
+            {% endif %}
+        </form>
     </div>
 
     {% if cars is empty %}
@@ -126,7 +138,7 @@
                     <div class="bk-top">
                         <div>
                             <h2>{{ car.name }}</h2>
-                            <p class="bk-ref">{{ car.type }} &middot; unit #{{ car.id }}</p>
+                            <p class="bk-ref">{{ car.type }} &middot; unit #{{ car.id }} &middot; Added by {{ car.owner_name|default('Admin') }}</p>
                         </div>
                         <span class="pill pill-{{ car.available ? 'completed' : 'cancelled' }}">
                             {{ car.available ? 'On site' : 'Hidden' }}
@@ -148,11 +160,13 @@
                         </p>
                     {% endif %}
 
-                    {# edit form, collapsed #}
+                    {# edit form, collapsed — admin makausab tanan, staff iyaha ra #}
+                    {% if car.can_edit|default(true) %}
                     <details class="adm-edit">
                         <summary>Edit details</summary>
 
                         <form method="POST" action="{{ path('admin_product', {view: filter}) }}" class="car-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('admin_product_action') }}">
                             <input type="hidden" name="action" value="edit_car">
                             <input type="hidden" name="car_id" value="{{ car.id }}">
                             <input type="hidden" name="view" value="{{ filter }}">
@@ -216,6 +230,7 @@
                             </div>
                         </form>
                     </details>
+                    {% endif %}
 
                     <div class="bk-foot">
                         <p class="bk-made">
@@ -227,23 +242,29 @@
                         </p>
 
                         <div class="ad-actions">
-                            <form method="POST" action="{{ path('admin_product', {view: filter}) }}">
-                                <input type="hidden" name="action" value="toggle_car">
-                                <input type="hidden" name="car_id" value="{{ car.id }}">
-                                <input type="hidden" name="view" value="{{ filter }}">
-                                <input type="hidden" name="available" value="{{ car.available ? '0' : '1' }}">
-                                <button type="submit" class="ad-btn {{ car.available ? 'ad-no' : 'ad-ok' }}">
-                                    {{ car.available ? 'Hide from site' : 'Put on site' }}
-                                </button>
-                            </form>
-
-                            {% if car.bookings == 0 %}
-                                <form method="POST" action="{{ path('admin_product', {view: filter}) }}" onsubmit="return confirm('Delete this vehicle for good?');">
-                                    <input type="hidden" name="action" value="drop_car">
+                            {% if car.can_edit|default(true) %}
+                                <form method="POST" action="{{ path('admin_product', {view: filter}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_product_action') }}">
+                                    <input type="hidden" name="action" value="toggle_car">
                                     <input type="hidden" name="car_id" value="{{ car.id }}">
                                     <input type="hidden" name="view" value="{{ filter }}">
-                                    <button type="submit" class="ad-btn ad-no">Delete</button>
+                                    <input type="hidden" name="available" value="{{ car.available ? '0' : '1' }}">
+                                    <button type="submit" class="ad-btn {{ car.available ? 'ad-no' : 'ad-ok' }}">
+                                        {{ car.available ? 'Hide from site' : 'Put on site' }}
+                                    </button>
                                 </form>
+
+                                {% if car.bookings == 0 %}
+                                    <form method="POST" action="{{ path('admin_product', {view: filter}) }}" onsubmit="return confirm('Delete this vehicle for good?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_product_action') }}">
+                                        <input type="hidden" name="action" value="drop_car">
+                                        <input type="hidden" name="car_id" value="{{ car.id }}">
+                                        <input type="hidden" name="view" value="{{ filter }}">
+                                        <button type="submit" class="ad-btn ad-no">Delete</button>
+                                    </form>
+                                {% endif %}
+                            {% else %}
+                                <span class="ad-done" title="Staff can only edit or delete their own records.">View only (Admin record)</span>
                             {% endif %}
                         </div>
                     </div>
