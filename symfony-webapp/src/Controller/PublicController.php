@@ -1009,6 +1009,9 @@ final class PublicController extends AbstractController
             if ($user->isAdmin()) {
                 return $this->redirectToRoute('admin_dashboard');
             }
+            if ($user->isStaff()) {
+                return $this->redirectToRoute('admin_product');
+            }
 
             return $this->redirectToRoute('home');
         }
@@ -1028,8 +1031,13 @@ final class PublicController extends AbstractController
     public function loginRedirect(): Response
     {
         $user = $this->getUser();
-        if ($user instanceof User && $user->isAdmin()) {
-            return $this->redirectToRoute('admin_dashboard');
+        if ($user instanceof User) {
+            if ($user->isAdmin()) {
+                return $this->redirectToRoute('admin_dashboard');
+            }
+            if ($user->isStaff()) {
+                return $this->redirectToRoute('admin_product');
+            }
         }
 
         return $this->redirectToRoute('home');
@@ -1147,6 +1155,7 @@ final class PublicController extends AbstractController
             return [
                 'is_logged_in'   => true,
                 'is_admin'       => $user->isAdmin(),
+                'is_staff'       => $user->isStaff(),
                 'user_name'      => $user->getFullName(),
                 'user_full_name' => $user->getFullName(),
                 'current_user'   => $user,
@@ -1156,6 +1165,7 @@ final class PublicController extends AbstractController
         return [
             'is_logged_in'   => false,
             'is_admin'       => false,
+            'is_staff'       => false,
             'user_name'      => 'Guest',
             'user_full_name' => 'Guest',
             'current_user'   => null,
