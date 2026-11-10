@@ -220,17 +220,13 @@
                                 <button type="submit" class="ad-btn ad-ok">Reset password</button>
                             </form>
 
-                            {% if u.bookings == 0 %}
-                                <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" onsubmit="return confirm('Delete this account for good? This cannot be undone.');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_user_action') }}">
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="user_id" value="{{ u.id }}">
-                                    <input type="hidden" name="view" value="{{ filter }}">
-                                    <button type="submit" class="ad-btn ad-no">Delete</button>
-                                </form>
-                            {% else %}
-                                <span class="ad-done" title="Accounts with bookings on file cannot be deleted.">Has history</span>
-                            {% endif %}
+                            <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" onsubmit="return confirm('Delete this account for good? This cannot be undone.');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_user_action') }}">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="user_id" value="{{ u.id }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <button type="submit" class="ad-btn ad-no">Delete</button>
+                            </form>
                         </div>
                     </div>
                 </div>

@@ -254,17 +254,15 @@
                                     </button>
                                 </form>
 
-                                {% if car.bookings == 0 %}
-                                    <form method="POST" action="{{ path('admin_product', {view: filter}) }}" onsubmit="return confirm('Delete this vehicle for good?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_product_action') }}">
-                                        <input type="hidden" name="action" value="drop_car">
-                                        <input type="hidden" name="car_id" value="{{ car.id }}">
-                                        <input type="hidden" name="view" value="{{ filter }}">
-                                        <button type="submit" class="ad-btn ad-no">Delete</button>
-                                    </form>
-                                {% endif %}
+                                <form method="POST" action="{{ path('admin_product', {view: filter}) }}" onsubmit="return confirm('Delete this vehicle for good?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_product_action') }}">
+                                    <input type="hidden" name="action" value="drop_car">
+                                    <input type="hidden" name="car_id" value="{{ car.id }}">
+                                    <input type="hidden" name="view" value="{{ filter }}">
+                                    <button type="submit" class="ad-btn ad-no">Delete</button>
+                                </form>
                             {% else %}
-                                <span class="ad-done" title="Staff can only edit or delete their own records.">View only (Admin record)</span>
+                                <span class="ad-done" title="Staff can only edit or delete their own records.">View only ({{ car.owner_name|default('Admin') }})</span>
                             {% endif %}
                         </div>
                     </div>
