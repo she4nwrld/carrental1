@@ -1,12 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Customers{% endblock %}
-{% block page_title %}Customers{% endblock %}
+{% block title %}Users & Staff{% endblock %}
+{% block page_title %}Users & Staff{% endblock %}
 
 {% block page_head %}
     <div class="list-head">
-        <h1>Registered customers</h1>
-        <p class="book-sub">Highest spend first. Admin accounts are left out.</p>
+        <h1>Users, Staff &amp; Customers</h1>
+        <p class="book-sub">Create staff or admin accounts, update roles, reset passwords, or disable access.</p>
     </div>
 {% endblock %}
 
@@ -15,16 +15,21 @@
     {% for temp_password in app.flashes('temp_password') %}
         <div class="flash">
             Temporary password: <strong>{{ temp_password }}</strong> &mdash;
-            give this to the customer and ask them to change it from their profile page.
+            give this to the user and ask them to change it from their profile page.
             This will not be shown again.
         </div>
     {% endfor %}
 
     <div class="stat-grid">
         <div class="stat">
-            <span>Accounts</span>
+            <span>Total users</span>
             <strong>{{ stats.total|number_format }}</strong>
             <em>{{ stats.fresh|number_format }} joined this month</em>
+        </div>
+        <div class="stat">
+            <span>Total staff</span>
+            <strong>{{ stats.staff|default(0)|number_format }}</strong>
+            <em>{{ stats.admins|default(0)|number_format }} admin{{ stats.admins|default(0) == 1 ? '' : 's' }}</em>
         </div>
         <div class="stat">
             <span>Have booked</span>
@@ -41,16 +46,50 @@
             <strong>&#8369;{{ stats.revenue|number_format }}</strong>
             <em>confirmed + completed</em>
         </div>
-        <div class="stat">
-            <span>Average per customer</span>
-            <strong>&#8369;{{ (stats.buyers > 0 ? (stats.revenue / stats.buyers)|round : 0)|number_format }}</strong>
-            <em>of those who booked</em>
-        </div>
     </div>
+
+    {# form para maghimo ug bag-o nga staff/admin/customer account #}
+    <details class="adm-add">
+        <summary>Create user / staff account</summary>
+
+        <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" class="car-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_user_action') }}">
+            <input type="hidden" name="action" value="create_user">
+            <input type="hidden" name="view" value="{{ filter }}">
+
+            <label>Full name
+                <input type="text" name="full_name" maxlength="100" required placeholder="Juan Dela Cruz">
+            </label>
+
+            <label>Email address
+                <input type="email" name="email" maxlength="180" required placeholder="staff2@shift.ph">
+            </label>
+
+            <label>Mobile number
+                <input type="text" name="phone" maxlength="40" required placeholder="09171234567">
+            </label>
+
+            <label>Role
+                <select name="role" required>
+                    <option value="staff">Staff</option>
+                    <option value="admin">Admin</option>
+                    <option value="customer">Customer</option>
+                </select>
+            </label>
+
+            <label class="wide">Initial password
+                <input type="password" name="password" minlength="6" required placeholder="At least 6 characters">
+            </label>
+
+            <div class="wide">
+                <button type="submit" class="ad-btn ad-ok">Create account</button>
+            </div>
+        </form>
+    </details>
 
     <form method="GET" action="{{ path('admin_customer') }}" class="adm-search">
         <input type="hidden" name="view" value="{{ filter }}">
-        <input type="search" name="q" value="{{ term }}" placeholder="Search name, email or phone">
+        <input type="search" name="q" value="{{ term }}" placeholder="Search name, email, phone or role">
         <button type="submit" class="ad-btn ad-ok">Search</button>
         {% if term != '' %}
             <a class="ad-btn ad-no" href="{{ path('admin_customer', {view: filter}) }}">Clear</a>
@@ -69,97 +108,134 @@
     {% if customers is empty %}
 
         <div class="list-empty">
-            <p>{{ term != '' ? 'Nobody matches "' ~ term ~ '".' : 'No customers in this list.' }}</p>
+            <p>{{ term != '' ? 'Nobody matches "' ~ term ~ '".' : 'No accounts in this list.' }}</p>
         </div>
 
     {% else %}
 
-        <div class="cust-table">
+        {% for u in customers %}
+            {% set u_role = u.role|default('customer') %}
 
-            <div class="cust-row cust-head">
-                <span>Customer</span>
-                <span>Contact</span>
-                <span>Bookings</span>
-                <span>Booked value</span>
-                <span>Status</span>
-                <span>Actions</span>
-            </div>
+            <article class="ad-card{{ u.is_active == 0 ? ' car-off' : '' }}">
+                <div class="ad-body">
+                    <div class="bk-top">
+                        <div>
+                            <h2>{{ u.full_name }}</h2>
+                            <p class="bk-ref">
+                                {{ u.email }} &middot; {{ u.phone }} &middot;
+                                Joined {{ u.created_at|date('M j, Y') }}
+                            </p>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span class="pill pill-{{ u_role == 'admin' ? 'overdue' : (u_role == 'staff' ? 'confirmed' : 'pending') }}">
+                                {{ u_role|upper }}
+                            </span>
+                            <span class="pill {{ u.is_active == 1 ? 'pill-completed' : 'pill-cancelled' }}">
+                                {{ u.is_active == 1 ? 'Active' : 'Disabled' }}
+                            </span>
+                        </div>
+                    </div>
 
-            {% for u in customers %}
+                    <div class="bk-grid">
+                        <div>
+                            <span>Username / Email</span>
+                            <strong>{{ u.email }}</strong>
+                            <em>{{ u.phone }}</em>
+                        </div>
+                        <div>
+                            <span>System Role</span>
+                            <strong>{{ u_role|capitalize }}</strong>
+                            <em>Created {{ u.created_at|date('M j, Y') }}</em>
+                        </div>
+                        <div>
+                            <span>Bookings</span>
+                            <strong>{{ u.bookings }}</strong>
+                            <em>{{ u.live }} active &middot; {{ u.done }} completed</em>
+                        </div>
+                        <div>
+                            <span>Booked value</span>
+                            <strong>&#8369;{{ u.spent|number_format }}</strong>
+                            <em>{{ u.last_booked ? 'Last: ' ~ (u.last_booked|date('M j, Y')) : 'No bookings yet' }}</em>
+                        </div>
+                    </div>
 
-                <div class="cust-row{{ u.is_active == 0 ? ' cust-off' : '' }}">
+                    {# edit user/staff details and role #}
+                    <details class="adm-edit">
+                        <summary>Edit user / role</summary>
 
-                    <span class="cust-who">
-                        <strong>{{ u.full_name }}</strong>
-                        <em>
-                            {% if u.bookings == 0 %}
-                                Joined {{ u.created_at|date('M j, Y') }} &middot; no bookings yet
-                            {% else %}
-                                Last booked {{ u.last_booked|date('M j, Y') }}
-                            {% endif %}
-                        </em>
-                    </span>
-
-                    <span class="cust-contact">
-                        <a href="mailto:{{ u.email }}">{{ u.email }}</a>
-                        <a href="tel:{{ u.phone }}">{{ u.phone }}</a>
-                    </span>
-
-                    <span class="cust-count">
-                        <strong>{{ u.bookings }}</strong>
-                        <em>
-                            {{ u.live }} active &middot; {{ u.done }} done
-                            {{- u.reviews > 0 ? ' · ' ~ u.reviews ~ ' review' ~ (u.reviews == 1 ? '' : 's') : '' }}
-                        </em>
-                    </span>
-
-                    <span class="cust-spend">
-                        <strong>&#8369;{{ u.spent|number_format }}</strong>
-                    </span>
-
-                    <span class="cust-status">
-                        <span class="pill {{ u.is_active == 1 ? 'pill-completed' : 'pill-cancelled' }}">
-                            {{ u.is_active == 1 ? 'Active' : 'Disabled' }}
-                        </span>
-                    </span>
-
-                    <span class="cust-actions">
-
-                        <form method="POST" action="{{ path('admin_customer', {view: filter}) }}">
-                            <input type="hidden" name="action" value="toggle">
-                            <input type="hidden" name="user_id" value="{{ u.id }}">
-                            <input type="hidden" name="is_active" value="{{ u.is_active == 1 ? '0' : '1' }}">
-                            <input type="hidden" name="view" value="{{ filter }}">
-                            <button type="submit" class="ad-btn {{ u.is_active == 1 ? 'ad-no' : 'ad-ok' }}">
-                                {{ u.is_active == 1 ? 'Disable' : 'Enable' }}
-                            </button>
-                        </form>
-
-                        <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" onsubmit="return confirm('Issue a temporary password for this customer?');">
-                            <input type="hidden" name="action" value="reset_password">
+                        <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" class="car-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('admin_user_action') }}">
+                            <input type="hidden" name="action" value="edit_user">
                             <input type="hidden" name="user_id" value="{{ u.id }}">
                             <input type="hidden" name="view" value="{{ filter }}">
-                            <button type="submit" class="ad-btn ad-ok">Reset password</button>
-                        </form>
 
-                        {% if u.bookings == 0 %}
-                            <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" onsubmit="return confirm('Delete this customer for good? This cannot be undone.');">
-                                <input type="hidden" name="action" value="delete">
+                            <label>Full name
+                                <input type="text" name="full_name" maxlength="100" value="{{ u.full_name }}" required>
+                            </label>
+
+                            <label>Email address
+                                <input type="email" name="email" maxlength="180" value="{{ u.email }}" required>
+                            </label>
+
+                            <label>Mobile number
+                                <input type="text" name="phone" maxlength="40" value="{{ u.phone }}" required>
+                            </label>
+
+                            <label>Role
+                                <select name="role" required>
+                                    <option value="customer"{{ u_role == 'customer' ? ' selected' : '' }}>Customer</option>
+                                    <option value="staff"{{ u_role == 'staff' ? ' selected' : '' }}>Staff</option>
+                                    <option value="admin"{{ u_role == 'admin' ? ' selected' : '' }}>Admin</option>
+                                </select>
+                            </label>
+
+                            <div class="wide">
+                                <button type="submit" class="ad-btn ad-ok">Save changes</button>
+                            </div>
+                        </form>
+                    </details>
+
+                    <div class="bk-foot">
+                        <p class="bk-made">
+                            Account #{{ u.id }} &middot; {{ u.reviews }} review{{ u.reviews == 1 ? '' : 's' }}
+                        </p>
+
+                        <div class="ad-actions">
+                            <form method="POST" action="{{ path('admin_customer', {view: filter}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_user_action') }}">
+                                <input type="hidden" name="action" value="toggle">
+                                <input type="hidden" name="user_id" value="{{ u.id }}">
+                                <input type="hidden" name="is_active" value="{{ u.is_active == 1 ? '0' : '1' }}">
+                                <input type="hidden" name="view" value="{{ filter }}">
+                                <button type="submit" class="ad-btn {{ u.is_active == 1 ? 'ad-no' : 'ad-ok' }}">
+                                    {{ u.is_active == 1 ? 'Disable' : 'Enable' }}
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" onsubmit="return confirm('Issue a temporary password for this user?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_user_action') }}">
+                                <input type="hidden" name="action" value="reset_password">
                                 <input type="hidden" name="user_id" value="{{ u.id }}">
                                 <input type="hidden" name="view" value="{{ filter }}">
-                                <button type="submit" class="ad-btn ad-no">Delete</button>
+                                <button type="submit" class="ad-btn ad-ok">Reset password</button>
                             </form>
-                        {% else %}
-                            <span class="ad-done" title="Customers with bookings on file cannot be deleted.">Has history</span>
-                        {% endif %}
 
-                    </span>
-
+                            {% if u.bookings == 0 %}
+                                <form method="POST" action="{{ path('admin_customer', {view: filter}) }}" onsubmit="return confirm('Delete this account for good? This cannot be undone.');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_user_action') }}">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="user_id" value="{{ u.id }}">
+                                    <input type="hidden" name="view" value="{{ filter }}">
+                                    <button type="submit" class="ad-btn ad-no">Delete</button>
+                                </form>
+                            {% else %}
+                                <span class="ad-done" title="Accounts with bookings on file cannot be deleted.">Has history</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-
-            {% endfor %}
-
-        </div>
+            </article>
+        {% endfor %}
 
     {% endif %}
 {% endblock %}

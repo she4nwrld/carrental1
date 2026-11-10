@@ -21,6 +21,21 @@
 
     <div class="stat-grid">
         <div class="stat">
+            <span>Total users</span>
+            <strong>{{ stats.total_users|default(0)|number_format }}</strong>
+            <em>{{ stats.total_staff|default(0)|number_format }} staff member{{ stats.total_staff|default(0) == 1 ? '' : 's' }}</em>
+        </div>
+        <div class="stat">
+            <span>Total staff</span>
+            <strong>{{ stats.total_staff|default(0)|number_format }}</strong>
+            <em><a href="{{ path('admin_customer', {view: 'staff'}) }}">manage staff</a></em>
+        </div>
+        <div class="stat">
+            <span>Total records</span>
+            <strong>{{ stats.total_records|default(0)|number_format }}</strong>
+            <em>fleet + bookings</em>
+        </div>
+        <div class="stat">
             <span>Active bookings</span>
             <strong>{{ stats.active|number_format }}</strong>
             <em>{{ stats.cancelled|number_format }} cancelled</em>

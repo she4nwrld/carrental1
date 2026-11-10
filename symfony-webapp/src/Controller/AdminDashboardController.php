@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\BookingRepository;
 use App\Repository\CarRepository;
 use App\Repository\MessageRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,7 @@ final class AdminDashboardController extends AbstractController
         BookingRepository $bookingRepository,
         CarRepository $carRepository,
         MessageRepository $messageRepository,
+        UserRepository $userRepository,
         EntityManagerInterface $em,
     ): Response {
         $today = date('Y-m-d');
@@ -111,9 +113,16 @@ final class AdminDashboardController extends AbstractController
                 'created_at' => $b->getCreatedAt(),
             ], $allEntities);
             $unread = $messageRepository->count(['isRead' => 0]);
+            $allUsers = $userRepository->findAll();
+            $totalUsers = \count($allUsers);
+            $totalStaff = \count(array_filter($allUsers, static fn ($u): bool => $u->isStaff()));
+            $totalRecords = $carRepository->count([]) + \count($allEntities);
         } else {
             $all = $this->sampleBookings($today);
             $unread = 2;
+            $totalUsers = 8;
+            $totalStaff = 1;
+            $totalRecords = 18;
         }
 
         $stats = [
@@ -124,6 +133,9 @@ final class AdminDashboardController extends AbstractController
             'cancelled' => 0,
             'overdue' => 0,
             'revenue' => 0,
+            'total_users' => $totalUsers,
+            'total_staff' => $totalStaff,
+            'total_records' => $totalRecords,
         ];
 
         foreach ($all as $bk) {

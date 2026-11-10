@@ -19,10 +19,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class AdminCustomerController extends AbstractController
 {
-    private const VIEWS = ['all', 'booked', 'new', 'disabled'];
+    private const VIEWS = ['all', 'staff', 'admin', 'booked', 'new', 'disabled'];
 
     private const LABELS = [
-        'all' => 'All',
+        'all' => 'All users',
+        'staff' => 'Staff',
+        'admin' => 'Admins',
         'booked' => 'Have booked',
         'new' => 'No bookings yet',
         'disabled' => 'Disabled',
@@ -48,16 +50,106 @@ final class AdminCustomerController extends AbstractController
         $dbReady = $carRepository->ensureSeeded();
 
         if ($dbReady && $request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_user_action', (string) $request->request->get('_token'))) {
+                $this->addFlash('warning', 'Invalid security token. Please try again.');
+
+                return $this->redirectToRoute('admin_customer', ['view' => $filter]);
+            }
+
             $action = (string) $request->request->get('action', '');
             $userId = (int) $request->request->get('user_id', 0);
             $viewRedirect = (string) $request->request->get('view', $filter);
+
+            // himo ug bag-o nga user/staff/admin account
+            if ('create_user' === $action) {
+                $fullName = trim((string) $request->request->get('full_name', ''));
+                $email = trim((string) $request->request->get('email', ''));
+                $phone = trim((string) $request->request->get('phone', ''));
+                $role = (string) $request->request->get('role', 'staff');
+                $plainPass = (string) $request->request->get('password', '');
+
+                if ('' === $fullName || '' === $email || !filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+                    $this->addFlash('warning', 'Please provide a valid full name and email address.');
+
+                    return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
+                }
+
+                if (\strlen($plainPass) < 6) {
+                    $this->addFlash('warning', 'Password must be at least 6 characters.');
+
+                    return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
+                }
+
+                if (null !== $userRepository->findOneBy(['username' => $email]) || null !== $userRepository->findOneBy(['email' => $email])) {
+                    $this->addFlash('warning', 'An account with that email address already exists.');
+
+                    return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
+                }
+
+                if (!\in_array($role, ['admin', 'staff', 'customer'], true)) {
+                    $role = 'staff';
+                }
+
+                $newUser = (new User())
+                    ->setFullName($fullName)
+                    ->setEmail($email)
+                    ->setUsername($email)
+                    ->setPhone('' !== $phone ? $phone : '09170000000')
+                    ->setRole($role)
+                    ->setIsActive(1)
+                    ->setCreatedAt(date('Y-m-d H:i:s'));
+                $newUser->setPassword($passwordHasher->hashPassword($newUser, $plainPass));
+
+                $em->persist($newUser);
+                $em->flush();
+
+                $this->addFlash('success', sprintf('%s account "%s" created.', ucfirst($role), $fullName));
+
+                return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
+            }
+
             $u = $userId > 0 ? $userRepository->find($userId) : null;
 
             if (null !== $u) {
-                if ('delete' === $action) {
-                    $em->remove($u);
+                if ('edit_user' === $action) {
+                    $fullName = trim((string) $request->request->get('full_name', $u->getFullName()));
+                    $email = trim((string) $request->request->get('email', (string) $u->getEmail()));
+                    $phone = trim((string) $request->request->get('phone', $u->getPhone()));
+                    $role = (string) $request->request->get('role', $u->getRole());
+
+                    if ('' === $fullName || '' === $email || !filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+                        $this->addFlash('warning', 'Name and a valid email address are required.');
+
+                        return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
+                    }
+
+                    $dup = $userRepository->findOneBy(['email' => $email]);
+                    if (null !== $dup && $dup->getId() !== $u->getId()) {
+                        $this->addFlash('warning', 'That email address is already in use by another account.');
+
+                        return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
+                    }
+
+                    if (\in_array($role, ['admin', 'staff', 'customer'], true)) {
+                        $u->setRole($role);
+                    }
+
+                    $u->setFullName($fullName)
+                        ->setEmail($email)
+                        ->setUsername($email)
+                        ->setPhone($phone);
+
                     $em->flush();
-                    $this->addFlash('success', sprintf('Customer "%s" deleted.', $u->getFullName()));
+                    $this->addFlash('success', sprintf('Account "%s" updated.', $u->getFullName()));
+                } elseif ('delete' === $action) {
+                    $currentUser = $this->getUser();
+                    if ($currentUser instanceof User && $currentUser->getId() === $u->getId()) {
+                        $this->addFlash('warning', 'You cannot delete your own active admin account.');
+                    } else {
+                        $em->remove($u);
+                        $em->flush();
+                        $this->addFlash('success', sprintf('Account "%s" deleted.', $u->getFullName()));
+                    }
                 } elseif ('reset_password' === $action) {
                     $tempPass = 'Shift-' . random_int(1000, 9999);
                     $u->setPassword($passwordHasher->hashPassword($u, $tempPass));
@@ -67,7 +159,7 @@ final class AdminCustomerController extends AbstractController
                     $act = $request->request->getInt('is_active', 1);
                     $u->setIsActive($act);
                     $em->flush();
-                    $this->addFlash('success', sprintf('Customer "%s" %s.', $u->getFullName(), $act ? 'enabled' : 'disabled'));
+                    $this->addFlash('success', sprintf('Account "%s" %s.', $u->getFullName(), $act ? 'enabled' : 'disabled'));
                 }
             }
 
@@ -75,10 +167,7 @@ final class AdminCustomerController extends AbstractController
         }
 
         if ($dbReady) {
-            $allUsers = array_values(array_filter(
-                $userRepository->findAll(),
-                static fn (User $u): bool => !$u->isAdmin()
-            ));
+            $allUsers = $userRepository->findAll();
             $allBookings = $bookingRepository->findAll();
             $allReviews = $reviewRepository->findAll();
 
@@ -119,6 +208,7 @@ final class AdminCustomerController extends AbstractController
                     'full_name' => $u->getFullName(),
                     'email' => (string) $u->getEmail(),
                     'phone' => $u->getPhone(),
+                    'role' => $u->getRole(),
                     'is_active' => $u->getIsActive(),
                     'created_at' => $u->getCreatedAt(),
                     'bookings' => $bkCount,
@@ -140,6 +230,8 @@ final class AdminCustomerController extends AbstractController
         $thisMonth = date('Y-m');
         $stats = [
             'total' => \count($all),
+            'staff' => 0,
+            'admins' => 0,
             'fresh' => 0,
             'buyers' => 0,
             'disabled' => 0,
@@ -147,6 +239,11 @@ final class AdminCustomerController extends AbstractController
         ];
 
         foreach ($all as $u) {
+            if ('staff' === ($u['role'] ?? 'customer')) {
+                ++$stats['staff'];
+            } elseif ('admin' === ($u['role'] ?? 'customer')) {
+                ++$stats['admins'];
+            }
             if (str_starts_with($u['created_at'], $thisMonth)) {
                 ++$stats['fresh'];
             }
@@ -162,7 +259,10 @@ final class AdminCustomerController extends AbstractController
         $customers = array_values(array_filter(
             $all,
             static function (array $u) use ($filter, $term): bool {
+                $role = $u['role'] ?? 'customer';
                 $matchesView = match ($filter) {
+                    'staff' => 'staff' === $role,
+                    'admin' => 'admin' === $role,
                     'booked' => $u['bookings'] > 0,
                     'new' => 0 === $u['bookings'],
                     'disabled' => 0 === $u['is_active'],
@@ -174,7 +274,7 @@ final class AdminCustomerController extends AbstractController
                 if ('' === $term) {
                     return true;
                 }
-                $haystack = strtolower($u['full_name'] . ' ' . $u['email'] . ' ' . $u['phone']);
+                $haystack = strtolower($u['full_name'] . ' ' . $u['email'] . ' ' . $u['phone'] . ' ' . $role);
 
                 return str_contains($haystack, strtolower($term));
             }
