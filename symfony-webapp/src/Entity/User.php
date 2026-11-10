@@ -154,15 +154,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return \in_array('ROLE_ADMIN', $this->getRoles(), true);
     }
 
+    public function isStaff(): bool
+    {
+        return \in_array('ROLE_STAFF', $this->getRoles(), true);
+    }
+
     public function getRole(): string
     {
-        return $this->isAdmin() ? 'admin' : 'customer';
+        if ($this->isAdmin()) {
+            return 'admin';
+        }
+        if ($this->isStaff()) {
+            return 'staff';
+        }
+
+        return 'customer';
     }
 
     public function setRole(string $role): static
     {
         if ('admin' === $role) {
             $this->roles = ['ROLE_ADMIN', 'ROLE_USER'];
+        } elseif ('staff' === $role) {
+            $this->roles = ['ROLE_STAFF', 'ROLE_USER'];
         } else {
             $this->roles = ['ROLE_USER'];
         }

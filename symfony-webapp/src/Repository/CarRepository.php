@@ -70,6 +70,22 @@ class CarRepository extends ServiceEntityRepository
                     $conn->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
                 }
                 $this->seedDatabase();
+            } else {
+                // dugang default staff account kung wala pa sa db
+                $hasStaff = (int) $conn->fetchOne("SELECT COUNT(*) FROM `user` WHERE username = 'staff@shift.ph'");
+                if (0 === $hasStaff) {
+                    $staff = (new User())
+                        ->setUsername('staff@shift.ph')
+                        ->setEmail('staff@shift.ph')
+                        ->setFullName('Jomar Staff')
+                        ->setPhone('09182217744')
+                        ->setRole('staff')
+                        ->setIsActive(1)
+                        ->setCreatedAt('2026-08-05 09:00:00')
+                        ->setPassword(password_hash('staff123', \PASSWORD_BCRYPT));
+                    $em->persist($staff);
+                    $em->flush();
+                }
             }
 
             $this->checked = true;
@@ -129,6 +145,18 @@ class CarRepository extends ServiceEntityRepository
             ->setCreatedAt('2026-08-01 09:00:00')
             ->setPassword(password_hash('admin123', \PASSWORD_BCRYPT));
         $em->persist($admin);
+
+        $staff = (new User())
+            ->setUsername('staff@shift.ph')
+            ->setEmail('staff@shift.ph')
+            ->setFullName('Jomar Staff')
+            ->setPhone('09182217744')
+            ->setRole('staff')
+            ->setRoles(['ROLE_STAFF', 'ROLE_USER'])
+            ->setIsActive(1)
+            ->setCreatedAt('2026-08-05 09:00:00')
+            ->setPassword(password_hash('staff123', \PASSWORD_BCRYPT));
+        $em->persist($staff);
 
         $customersData = [
             ['sheene@customer.com', 'Sheene Prestin', '09175550143', 'customer123', 1, '2026-08-14 09:15:00'],
