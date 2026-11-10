@@ -1,5 +1,6 @@
 {% set is_logged_in = is_logged_in|default(app.user is not null) %}
 {% set is_admin = is_admin|default(is_granted('ROLE_ADMIN')) %}
+{% set is_staff = is_staff|default(is_granted('ROLE_STAFF')) %}
 {% set user_name = user_name|default(app.user ? app.user.fullName : 'Guest') %}
 
 <header class="topbar">
@@ -23,6 +24,8 @@
       {% if is_logged_in %}
         {% if is_admin %}
           <a href="{{ path('admin_dashboard') }}">Dashboard</a>
+        {% elseif is_staff %}
+          <a href="{{ path('admin_product') }}">Staff Panel</a>
         {% endif %}
         <a href="{{ path('profile') }}">My Profile</a>
         <a href="{{ path('bookings') }}">My Bookings</a>
@@ -40,6 +43,8 @@
       {# naka-login: ngalan, profile, mga booking, ug logout #}
       {% if is_admin %}
         <a href="{{ path('admin_dashboard') }}">Dashboard</a>
+      {% elseif is_staff %}
+        <a href="{{ path('admin_product') }}">Staff Panel</a>
       {% endif %}
       <a href="{{ path('profile') }}">My Profile</a>
       <a href="{{ path('bookings') }}">My Bookings</a>

@@ -1,18 +1,22 @@
 <aside class="adm-side">
-    <a class="adm-brand" href="{{ path('admin_dashboard') }}">
+    <a class="adm-brand" href="{{ is_granted('ROLE_ADMIN') ? path('admin_dashboard') : path('admin_product') }}">
         <img src="{{ asset('images/shift-logo.png') }}" alt="Shift Car Rental">
     </a>
 
     <nav class="adm-nav">
         {% set route = app.request.attributes.get('_route') %}
         <p class="adm-group">Operations</p>
-        <a class="adm-link{{ route == 'admin_dashboard' ? ' is-on' : '' }}" href="{{ path('admin_dashboard') }}"><span>Bookings</span></a>
+        {% if is_granted('ROLE_ADMIN') %}
+            <a class="adm-link{{ route == 'admin_dashboard' ? ' is-on' : '' }}" href="{{ path('admin_dashboard') }}"><span>Bookings</span></a>
+        {% endif %}
         <a class="adm-link{{ route == 'admin_product' ? ' is-on' : '' }}" href="{{ path('admin_product') }}"><span>Fleet</span></a>
         <a class="adm-link{{ route == 'admin_maintenance' ? ' is-on' : '' }}" href="{{ path('admin_maintenance') }}"><span>Maintenance</span></a>
         <a class="adm-link{{ route == 'admin_promo' ? ' is-on' : '' }}" href="{{ path('admin_promo') }}"><span>Promos</span></a>
 
         <p class="adm-group">People</p>
-        <a class="adm-link{{ route == 'admin_customer' ? ' is-on' : '' }}" href="{{ path('admin_customer') }}"><span>Customers</span></a>
+        {% if is_granted('ROLE_ADMIN') %}
+            <a class="adm-link{{ route == 'admin_customer' ? ' is-on' : '' }}" href="{{ path('admin_customer') }}"><span>Users &amp; Staff</span></a>
+        {% endif %}
         <a class="adm-link{{ route == 'admin_review' ? ' is-on' : '' }}" href="{{ path('admin_review') }}"><span>Reviews</span></a>
         <a class="adm-link{{ route == 'admin_message' ? ' is-on' : '' }}" href="{{ path('admin_message') }}">
             <span>Inbox</span>
@@ -23,6 +27,7 @@
     </nav>
 
     <div class="adm-side-foot">
+        <a class="adm-link adm-quiet" href="{{ path('profile') }}">My Profile</a>
         <a class="adm-link adm-quiet" href="{{ path('home') }}" target="_blank" rel="noopener">View site</a>
         <a class="adm-link adm-quiet" href="{{ path('app_logout') }}">Log out</a>
     </div>

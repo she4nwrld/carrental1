@@ -1,9 +1,10 @@
 {% set who = admin_name|default(app.user ? app.user.fullName : 'Admin') %}
 {% set init = admin_initial|default(who|trim|slice(0, 1)|upper ?: 'A') %}
+{% set role_label = is_granted('ROLE_ADMIN') ? 'Admin' : (is_granted('ROLE_STAFF') ? 'Staff' : 'User') %}
 <header class="adm-top">
     <h1>{{ page_title }}</h1>
-    <div class="adm-user">
+    <a class="adm-user" href="{{ path('profile') }}" title="View profile &amp; change password" style="text-decoration:none; color:inherit;">
         <span class="adm-avatar" aria-hidden="true">{{ init }}</span>
-        <span class="adm-who">{{ who }}</span>
-    </div>
+        <span class="adm-who">{{ who }} <small style="opacity:.75;">({{ role_label }})</small></span>
+    </a>
 </header>
