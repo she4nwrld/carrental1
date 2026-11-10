@@ -96,9 +96,9 @@
     </form>
   </section>
 
-  {% if is_granted('ROLE_ADMIN') %}
+  {% if is_admin|default(is_granted('ROLE_ADMIN')) %}
     <p class="pf-back"><a href="{{ path('admin_dashboard') }}">&larr; Back to Admin Dashboard</a></p>
-  {% elseif is_granted('ROLE_STAFF') %}
+  {% elseif is_staff|default(is_granted('ROLE_STAFF')) %}
     <p class="pf-back"><a href="{{ path('admin_product') }}">&larr; Back to Staff Panel</a></p>
   {% else %}
     <p class="pf-back"><a href="{{ path('bookings') }}">&larr; Back to my bookings</a></p>
