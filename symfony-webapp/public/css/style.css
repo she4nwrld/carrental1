@@ -2827,3 +2827,102 @@ html {
   .right a:not(.bookbtn) { display: none; }   /* naa na sila sa panel */
   .bookbtn { padding: 9px 16px; font-size: 13px; }
 }
+
+/* ===== 3-line account dropdown panel sa header ===== */
+.acct-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.acct-toggle {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #E6E8EC;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.acct-toggle:hover,
+.acct-toggle[aria-expanded="true"] {
+  border-color: #FEB802;
+  background: #FFFBEB;
+}
+
+.acct-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  margin: 4px auto;
+  border-radius: 2px;
+  background: #131A2C;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.acct-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.acct-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.acct-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.acct-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 200;
+  min-width: 210px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #E6E8EC;
+  border-radius: 12px;
+  box-shadow: 0 14px 32px rgba(19, 26, 44, .14);
+}
+
+.acct-head {
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #F1F3F5;
+}
+
+.acct-head strong {
+  display: block;
+  font-size: 14px;
+  color: #131A2C;
+}
+
+.acct-head small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #B8860B;
+}
+
+.right .acct-panel a {
+  display: block;
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: #131A2C;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.right .acct-panel a:hover {
+  background: #F4F6F8;
+  color: #131A2C;
+}
+
+.right .acct-panel a.acct-logout {
+  margin-top: 4px;
+  border-top: 1px solid #F1F3F5;
+  border-radius: 0 0 8px 8px;
+  color: #B91C1C;
+  font-weight: 600;
+}
+
+.right .acct-panel a.acct-logout:hover {
+  background: #FEE2E2;
+}

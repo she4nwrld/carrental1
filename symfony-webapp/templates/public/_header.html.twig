@@ -41,17 +41,30 @@
   <div class="right">
     {% if is_logged_in %}
 
-      {# naka-login: ngalan, profile, mga booking, ug logout #}
-      {% if is_admin %}
-        <a href="{{ path('admin_dashboard') }}">Dashboard</a>
-      {% elseif is_staff %}
-        <a href="{{ path('admin_product') }}">Staff Panel</a>
-      {% else %}
-        <a href="{{ path('bookings') }}">My Bookings</a>
-      {% endif %}
-      <a href="{{ path('profile') }}">My Profile</a>
-      <span class="greet">Hi, {{ user_name }}</span>
-      <a class="bookbtn" href="{{ path('app_logout') }}">Log Out</a>
+      {# naka-login: ngalan + 3-line account menu panel #}
+      <div class="acct-menu" id="acct-menu">
+        <span class="greet">Hi, {{ user_name }}</span>
+        <button type="button" class="acct-toggle" id="acct-toggle"
+                aria-expanded="false" aria-controls="acct-panel" aria-label="Open account menu">
+          <span></span><span></span><span></span>
+        </button>
+
+        <div class="acct-panel" id="acct-panel" hidden>
+          <div class="acct-head">
+            <strong>{{ user_name }}</strong>
+            <small>{{ is_admin ? 'Administrator' : (is_staff ? 'Staff Member' : 'Customer') }}</small>
+          </div>
+          {% if is_admin %}
+            <a href="{{ path('admin_dashboard') }}">Admin Dashboard</a>
+          {% elseif is_staff %}
+            <a href="{{ path('admin_product') }}">Staff Panel</a>
+          {% else %}
+            <a href="{{ path('bookings') }}">My Bookings</a>
+          {% endif %}
+          <a href="{{ path('profile') }}">My Profile</a>
+          <a class="acct-logout" href="{{ path('app_logout') }}">Log Out</a>
+        </div>
+      </div>
 
     {% else %}
 
@@ -95,6 +108,37 @@
     if (e.key === 'Escape' && menu.classList.contains('is-open')) {
       close();
       btn.focus();
+    }
+  });
+})();
+
+(function () {
+  var wrap   = document.getElementById('acct-menu');
+  var toggle = document.getElementById('acct-toggle');
+  var panel  = document.getElementById('acct-panel');
+  if (!wrap || !toggle || !panel) return;
+
+  function closeAcct() {
+    panel.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  toggle.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var open = panel.hidden;
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  document.addEventListener('click', function (e) {
+    if (panel.hidden) return;
+    if (!wrap.contains(e.target)) closeAcct();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !panel.hidden) {
+      closeAcct();
+      toggle.focus();
     }
   });
 })();
