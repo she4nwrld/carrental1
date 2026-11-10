@@ -34,7 +34,7 @@
     {% if error %}
       <div class="auth-errors" role="alert">
         <ul>
-          <li>Incorrect email or password.</li>
+          <li>{{ 'disabled' in error.messageKey|lower ? error.messageKey : 'Incorrect email or password.' }}</li>
         </ul>
       </div>
     {% endif %}
