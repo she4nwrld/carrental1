@@ -145,9 +145,15 @@
               {% endif %}
             </div>
 
-            <a class="book" href="{{ path('book', {car_id: car.id}) }}{{ trip_qs|default('') }}">
-              <span class="label">Book Now <span class="book-arrow" aria-hidden="true">&#8599;</span></span>
-            </a>
+            {% if is_admin|default(is_granted('ROLE_ADMIN')) or is_staff|default(is_granted('ROLE_STAFF')) %}
+              <a class="book" href="{{ path('admin_product') }}">
+                <span class="label">Manage Fleet <span class="book-arrow" aria-hidden="true">&#8599;</span></span>
+              </a>
+            {% else %}
+              <a class="book" href="{{ path('book', {car_id: car.id}) }}{{ trip_qs|default('') }}">
+                <span class="label">Book Now <span class="book-arrow" aria-hidden="true">&#8599;</span></span>
+              </a>
+            {% endif %}
 
           </article>
 
