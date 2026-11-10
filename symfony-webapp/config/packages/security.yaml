@@ -37,10 +37,18 @@ security:
                 lifetime: 604800
                 path: /
 
+    role_hierarchy:
+        ROLE_STAFF: ROLE_USER
+        ROLE_ADMIN: [ROLE_STAFF, ROLE_USER]
+
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/admin/dashboard, roles: ROLE_ADMIN }
+        - { path: ^/dashboard, roles: ROLE_ADMIN }
+        - { path: ^/admin/customers, roles: ROLE_ADMIN }
+        - { path: ^/admin, roles: [ROLE_ADMIN, ROLE_STAFF] }
+        - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/bookings, roles: ROLE_USER }
 
 when@test:
     security:
