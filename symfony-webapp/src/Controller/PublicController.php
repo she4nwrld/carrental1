@@ -294,6 +294,13 @@ final class PublicController extends AbstractController
         if (!$user instanceof User) {
             return $this->redirectToRoute('app_login', ['next' => $request->getRequestUri()]);
         }
+        // customer ra ang pwede mo-book, dili admin o staff
+        if ($user->isAdmin()) {
+            return $this->redirectToRoute('admin_dashboard');
+        }
+        if ($user->isStaff()) {
+            return $this->redirectToRoute('admin_product');
+        }
 
         $carId = (int) ($request->query->get('car_id') ?: $request->request->get('car_id', 0));
         if ($carId <= 0) {
@@ -749,6 +756,12 @@ final class PublicController extends AbstractController
 
         if (!$user instanceof User) {
             return $this->redirectToRoute('app_login', ['next' => $this->generateUrl('bookings')]);
+        }
+        if ($user->isAdmin()) {
+            return $this->redirectToRoute('admin_dashboard');
+        }
+        if ($user->isStaff()) {
+            return $this->redirectToRoute('admin_product');
         }
 
         if ($dbReady && $request->isMethod('POST')) {

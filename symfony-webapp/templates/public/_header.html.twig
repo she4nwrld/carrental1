@@ -26,9 +26,10 @@
           <a href="{{ path('admin_dashboard') }}">Dashboard</a>
         {% elseif is_staff %}
           <a href="{{ path('admin_product') }}">Staff Panel</a>
+        {% else %}
+          <a href="{{ path('bookings') }}">My Bookings</a>
         {% endif %}
         <a href="{{ path('profile') }}">My Profile</a>
-        <a href="{{ path('bookings') }}">My Bookings</a>
         <a href="{{ path('app_logout') }}">Log Out</a>
       {% else %}
         <a href="{{ path('app_login') }}">Log In</a>
@@ -45,9 +46,10 @@
         <a href="{{ path('admin_dashboard') }}">Dashboard</a>
       {% elseif is_staff %}
         <a href="{{ path('admin_product') }}">Staff Panel</a>
+      {% else %}
+        <a href="{{ path('bookings') }}">My Bookings</a>
       {% endif %}
       <a href="{{ path('profile') }}">My Profile</a>
-      <a href="{{ path('bookings') }}">My Bookings</a>
       <span class="greet">Hi, {{ user_name }}</span>
       <a class="bookbtn" href="{{ path('app_logout') }}">Log Out</a>
 
