@@ -18,7 +18,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class CarRepository extends ServiceEntityRepository
 {
-    private bool $checked = false;
+    private ?bool $dbResult = null;
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -27,13 +27,23 @@ class CarRepository extends ServiceEntityRepository
 
     public function ensureSeeded(): bool
     {
-        if ($this->checked) {
-            return true;
+        if (null !== $this->dbResult) {
+            return $this->dbResult;
         }
 
         try {
             $em = $this->getEntityManager();
             $conn = $em->getConnection();
+            $params = $conn->getParams();
+            $host = (string) ($params['host'] ?? '127.0.0.1');
+            $port = (int) ($params['port'] ?? 3306);
+            if ($port > 0) {
+                $fp = @fsockopen($host, $port, $errno, $errstr, 0.25);
+                if (false === $fp) {
+                    return $this->dbResult = false;
+                }
+                fclose($fp);
+            }
             $schemaManager = $conn->createSchemaManager();
 
             $carColumns = $schemaManager->listTableColumns('car');
@@ -99,11 +109,9 @@ class CarRepository extends ServiceEntityRepository
                 }
             }
 
-            $this->checked = true;
-
-            return true;
+            return $this->dbResult = true;
         } catch (\Throwable) {
-            return false;
+            return $this->dbResult = false;
         }
     }
 

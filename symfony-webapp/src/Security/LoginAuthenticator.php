@@ -3,7 +3,9 @@
 namespace App\Security;
 
 use App\Entity\User;
+use App\Repository\CarRepository;
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Exception\ConnectionException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,6 +30,7 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
         private UserRepository $userRepository,
+        private CarRepository $carRepository,
     ) {
     }
 
@@ -41,8 +44,7 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
 
         return new Passport(
             new UserBadge($identifier, function (string $userIdentifier): User {
-                $user = $this->userRepository->findOneBy(['username' => $userIdentifier])
-                    ?? $this->userRepository->findOneBy(['email' => $userIdentifier]);
+                $user = $this->userRepository->findUserFlexible($userIdentifier);
 
                 if (!$user instanceof User) {
                     throw new CustomUserMessageAuthenticationException('Incorrect email or password.');

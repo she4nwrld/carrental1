@@ -186,7 +186,7 @@ class AdminProductController extends AbstractController
             $all = array_map($populateMeta, $allCarEntities);
             $unread = $messageRepository->count(['isRead' => 0]);
         } else {
-            $all = $this->sampleCars();
+            $all = $this->sampleCars($currentUserId, $isAdmin);
             $unread = 2;
         }
 
@@ -243,7 +243,7 @@ class AdminProductController extends AbstractController
     /**
      * @return list<array<string, mixed>>
      */
-    private function sampleCars(): array
+    private function sampleCars(?int $currentUserId = null, bool $isAdmin = false): array
     {
         return [
             [
@@ -264,6 +264,33 @@ class AdminProductController extends AbstractController
                 'live' => 0,
                 'repair_note' => null,
                 'repair_until' => null,
+                'created_by' => 1,
+                'owner_name' => 1 === $currentUserId ? 'You (Sheene Admin)' : 'Sheene Admin',
+                'is_mine' => 1 === $currentUserId,
+                'can_edit' => $isAdmin || 1 === $currentUserId,
+            ],
+            [
+                'id' => 2,
+                'name' => 'Kia Picanto',
+                'type' => 'Hatchback',
+                'price' => 1500,
+                'gear' => 'Manual',
+                'seats' => 5,
+                'doors' => 5,
+                'bag_large' => 1,
+                'bag_small' => 2,
+                'kids' => 1,
+                'aircon' => 1,
+                'img' => 'images/kia-picanto.png',
+                'available' => 1,
+                'bookings' => 0,
+                'live' => 0,
+                'repair_note' => null,
+                'repair_until' => null,
+                'created_by' => 2,
+                'owner_name' => 2 === $currentUserId ? 'You (Jomar Staff)' : 'Jomar Staff',
+                'is_mine' => 2 === $currentUserId,
+                'can_edit' => $isAdmin || 2 === $currentUserId,
             ],
         ];
     }
