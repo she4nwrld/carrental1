@@ -99,15 +99,15 @@
         </form>
     </details>
 
-    <div class="adm-bar">
-        <div class="filters admin-filters">
+    <div class="adm-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+        <div class="filters admin-filters" style="margin-bottom: 0;">
             {% for v in views %}
                 <a class="filter-tab{{ v == filter ? ' is-active' : '' }}"
                    href="{{ path('admin_product', {view: v, q: term|default('')}) }}">{{ v == 'mine' ? 'My Records' : v|capitalize }}</a>
             {% endfor %}
         </div>
 
-        <form method="GET" action="{{ path('admin_product') }}" class="adm-search">
+        <form method="GET" action="{{ path('admin_product') }}" class="adm-search" style="margin-bottom: 0;">
             <input type="hidden" name="view" value="{{ filter }}">
             <input type="search" name="q" value="{{ term|default('') }}" placeholder="Search vehicle, type or creator">
             <button type="submit" class="ad-btn ad-ok">Search</button>

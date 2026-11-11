@@ -817,6 +817,13 @@ final class PublicController extends AbstractController
         $old        = [];
 
         if ($request->isMethod('POST')) {
+            $csrfToken = (string) $request->request->get('_csrf_token', '');
+            if (!$this->isCsrfTokenValid('profile_action', $csrfToken)) {
+                $this->addFlash('warning', 'Invalid security token. Please try again.');
+
+                return $this->redirectToRoute('profile');
+            }
+
             $action = (string) $request->request->get('action', 'update_profile');
 
             if ('change_password' === $action) {
@@ -1089,7 +1096,12 @@ final class PublicController extends AbstractController
         $errors = [];
         $old    = ['full_name' => '', 'email' => '', 'phone' => ''];
 
-        if ($dbReady && $request->isMethod('POST')) {
+        if ($request->isMethod('POST')) {
+            $csrfToken = (string) $request->request->get('_csrf_token', '');
+            if (!$this->isCsrfTokenValid('register', $csrfToken)) {
+                $errors[] = 'Invalid security token. Please try again.';
+            }
+
             $fullName = trim((string) $request->request->get('full_name', ''));
             $email    = trim((string) $request->request->get('email', ''));
             $phone    = trim((string) $request->request->get('phone', ''));
@@ -1135,8 +1147,11 @@ final class PublicController extends AbstractController
                 $errors[] = 'Passwords do not match.';
             }
 
-            if (empty($errors) && null !== $userRepository->findOneBy(['username' => $email])) {
-                $errors[] = 'An account with that email already exists.';
+            if (empty($errors)) {
+                $existing = $dbReady ? $userRepository->findOneBy(['username' => $email]) : $userRepository->findUserFlexible($email);
+                if (null !== $existing) {
+                    $errors[] = 'An account with that email already exists.';
+                }
             }
 
             if (empty($errors)) {
@@ -1147,14 +1162,25 @@ final class PublicController extends AbstractController
                     ->setPhone($phone)
                     ->setRole('customer')
                     ->setRoles(['ROLE_USER'])
+                    ->setIsActive(1)
                     ->setCreatedAt(date('Y-m-d H:i:s'));
 
                 $user->setPassword($passwordHasher->hashPassword($user, $password));
 
-                $em->persist($user);
-                $em->flush();
+                if ($dbReady) {
+                    $em->persist($user);
+                    $em->flush();
+                } else {
+                    $userRepository->saveOfflineUser($user);
+                }
 
-                $security->login($user, 'form_login', 'main');
+                try {
+                    $security->login($user, \App\Security\LoginAuthenticator::class, 'main');
+                } catch (\Throwable) {
+                    $this->addFlash('success', 'Account created successfully! Please log in.');
+
+                    return $this->redirectToRoute('app_login');
+                }
 
                 return $this->redirectToRoute('home', ['welcome' => 1]);
             }

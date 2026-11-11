@@ -42,6 +42,7 @@
     {% endif %}
 
     <form method="POST" action="{{ path('app_register') }}" class="auth-form" novalidate>
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
 
       <div class="auth-field">
         <label for="full_name">Full Name</label>

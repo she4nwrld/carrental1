@@ -67,23 +67,45 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        $user = $token->getUser();
+
+        // Admin ug Staff kanunay mo-redirect sa ilang tagsa-tagsa ka panel
+        if ($user instanceof User) {
+            $targetPath = (string) $request->request->get('_target_path', '');
+            if ('' === $targetPath) {
+                $targetPath = (string) $this->getTargetPath($request->getSession(), $firewallName);
+            }
+            $this->removeTargetPath($request->getSession(), $firewallName);
+
+            if ($user->isAdmin()) {
+                if ('' !== $targetPath && str_starts_with($targetPath, '/admin')) {
+                    return new RedirectResponse($targetPath);
+                }
+
+                return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+            }
+
+            if ($user->isStaff()) {
+                if ('' !== $targetPath && str_starts_with($targetPath, '/admin')
+                    && !str_starts_with($targetPath, '/admin/dashboard')
+                    && !str_starts_with($targetPath, '/admin/customers')) {
+                    return new RedirectResponse($targetPath);
+                }
+
+                return new RedirectResponse($this->urlGenerator->generate('admin_product'));
+            }
+        }
+
+        // Regular customer: redirect sa target_path o customer home
         $targetPath = (string) $request->request->get('_target_path', '');
         if ('' !== $targetPath && str_starts_with($targetPath, '/')) {
             return new RedirectResponse($targetPath);
         }
 
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
-            return new RedirectResponse($targetPath);
-        }
+            $this->removeTargetPath($request->getSession(), $firewallName);
 
-        $user = $token->getUser();
-        if ($user instanceof User) {
-            if ($user->isAdmin()) {
-                return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
-            }
-            if ($user->isStaff()) {
-                return new RedirectResponse($this->urlGenerator->generate('admin_product'));
-            }
+            return new RedirectResponse($targetPath);
         }
 
         return new RedirectResponse($this->urlGenerator->generate('home'));
