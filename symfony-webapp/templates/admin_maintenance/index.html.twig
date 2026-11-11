@@ -157,12 +157,14 @@
                                 </button>
                             </form>
 
-                            <form method="POST" action="{{ path('admin_maintenance', {view: filter}) }}" onsubmit="return confirm('Delete this repair record for good?');">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="repair_id" value="{{ job.id }}">
-                                <input type="hidden" name="view" value="{{ filter }}">
-                                <button type="submit" class="ad-btn ad-no">Delete</button>
-                            </form>
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <form method="POST" action="{{ path('admin_maintenance', {view: filter}) }}" onsubmit="return confirm('Delete this repair record for good?');">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="repair_id" value="{{ job.id }}">
+                                    <input type="hidden" name="view" value="{{ filter }}">
+                                    <button type="submit" class="ad-btn ad-no">Delete</button>
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
 

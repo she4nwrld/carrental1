@@ -60,6 +60,11 @@ final class AdminMaintenanceController extends AbstractController
                 }
             } elseif ($repairId > 0 && ($job = $maintenanceRepository->find($repairId))) {
                 if ('delete' === $action) {
+                    if (!$this->isGranted('ROLE_ADMIN')) {
+                        $this->addFlash('warning', 'Only Admin can delete maintenance records.');
+
+                        return $this->redirectToRoute('admin_maintenance', ['view' => $viewRedirect]);
+                    }
                     $em->remove($job);
                     $em->flush();
                     $this->addFlash('success', 'Repair record deleted.');

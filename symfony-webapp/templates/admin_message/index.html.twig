@@ -99,12 +99,14 @@
                                 </button>
                             </form>
 
-                            <form method="POST" action="{{ path('admin_message', {view: filter}) }}" onsubmit="return confirm('Delete this message?');">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="message_id" value="{{ m.id }}">
-                                <input type="hidden" name="view" value="{{ filter }}">
-                                <button type="submit" class="ad-btn ad-no">Delete</button>
-                            </form>
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <form method="POST" action="{{ path('admin_message', {view: filter}) }}" onsubmit="return confirm('Delete this message?');">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="message_id" value="{{ m.id }}">
+                                    <input type="hidden" name="view" value="{{ filter }}">
+                                    <button type="submit" class="ad-btn ad-no">Delete</button>
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
 

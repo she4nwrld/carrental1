@@ -6,6 +6,7 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -85,6 +86,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         if (!$user instanceof User) {
             throw new UserNotFoundException(sprintf('User "%s" not found.', $identifier));
         }
+        if (0 === $user->getIsActive()) {
+            throw new CustomUserMessageAuthenticationException('This account has been disabled. Please contact the admin.');
+        }
 
         return $user;
     }
@@ -98,13 +102,20 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         if (null !== $user->getId() && !$this->carRepository->ensureSeeded()) {
             $byId = $this->findOfflineById($user->getId());
             if ($byId instanceof User) {
+                if (0 === $byId->getIsActive()) {
+                    throw new CustomUserMessageAuthenticationException('This account has been disabled. Please contact the admin.');
+                }
+
                 return $byId;
             }
         }
 
-        $reloaded = $this->findUserFlexible($user->getUserIdentifier());
+        $reloaded = $this->findUserFlexible($user->getUserIdentifier()) ?? $user;
+        if (0 === $reloaded->getIsActive()) {
+            throw new CustomUserMessageAuthenticationException('This account has been disabled. Please contact the admin.');
+        }
 
-        return $reloaded ?? $user;
+        return $reloaded;
     }
 
     public function supportsClass(string $class): bool

@@ -59,6 +59,11 @@ final class AdminPromoController extends AbstractController
                 $em->flush();
                 $this->addFlash('success', sprintf('Promo "%s" created.', $promo->getTitle()));
             } elseif ($promoId > 0 && ($promo = $promoRepository->find($promoId))) {
+                if (!$this->isGranted('ROLE_ADMIN')) {
+                    $this->addFlash('warning', 'Only Admin can modify or delete existing promos.');
+
+                    return $this->redirectToRoute('admin_promo', ['view' => $viewRedirect]);
+                }
                 if ('delete' === $action) {
                     $em->remove($promo);
                     $em->flush();

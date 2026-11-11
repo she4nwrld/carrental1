@@ -39,6 +39,11 @@ final class AdminMessageController extends AbstractController
 
             if (null !== $msg) {
                 if ('delete' === $action) {
+                    if (!$this->isGranted('ROLE_ADMIN')) {
+                        $this->addFlash('warning', 'Only Admin can permanently delete customer messages.');
+
+                        return $this->redirectToRoute('admin_message', ['view' => $viewRedirect]);
+                    }
                     $em->remove($msg);
                     $em->flush();
                     $this->addFlash('success', 'Message deleted.');

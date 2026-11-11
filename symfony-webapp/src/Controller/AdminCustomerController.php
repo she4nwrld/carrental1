@@ -138,6 +138,13 @@ final class AdminCustomerController extends AbstractController
                         return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
                     }
 
+                    $currentUser = $this->getUser();
+                    if ($currentUser instanceof User && $currentUser->getId() === $u->getId() && 'admin' !== $role) {
+                        $this->addFlash('warning', 'You cannot demote your own active admin account.');
+
+                        return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
+                    }
+
                     if (\in_array($role, ['admin', 'staff', 'customer'], true)) {
                         $u->setRole($role);
                     }
@@ -177,6 +184,12 @@ final class AdminCustomerController extends AbstractController
                     $this->addFlash('temp_password', $tempPass);
                 } elseif ($request->request->has('is_active')) {
                     $act = $request->request->getInt('is_active', 1);
+                    $currentUser = $this->getUser();
+                    if (0 === $act && $currentUser instanceof User && $currentUser->getId() === $u->getId()) {
+                        $this->addFlash('warning', 'You cannot disable your own active admin account.');
+
+                        return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
+                    }
                     $u->setIsActive($act);
                     if ($dbReady) {
                         $em->flush();

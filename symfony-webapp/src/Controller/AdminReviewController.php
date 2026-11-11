@@ -41,6 +41,11 @@ final class AdminReviewController extends AbstractController
 
             if (null !== $rv) {
                 if ('delete' === $action) {
+                    if (!$this->isGranted('ROLE_ADMIN')) {
+                        $this->addFlash('warning', 'Only Admin can permanently delete customer reviews.');
+
+                        return $this->redirectToRoute('admin_review', ['view' => $viewRedirect]);
+                    }
                     $em->remove($rv);
                     $em->flush();
                     $this->addFlash('success', 'Review deleted.');
