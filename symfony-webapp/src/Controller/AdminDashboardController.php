@@ -120,9 +120,10 @@ final class AdminDashboardController extends AbstractController
         } else {
             $all = $this->sampleBookings($today);
             $unread = 2;
-            $totalUsers = 8;
-            $totalStaff = 1;
-            $totalRecords = 18;
+            $offlineUsers = $userRepository->getOfflineUsers();
+            $totalUsers = \count($offlineUsers);
+            $totalStaff = \count(array_filter($offlineUsers, static fn ($u): bool => $u->isStaff()));
+            $totalRecords = \count($carRepository->getOfflineCars()) + \count($all);
         }
 
         $stats = [

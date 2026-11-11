@@ -453,4 +453,169 @@ class CarRepository extends ServiceEntityRepository
 
         $em->flush();
     }
+
+    private function offlineCarsStorePath(): string
+    {
+        return sys_get_temp_dir() . '/shift_offline_cars_v1.json';
+    }
+
+    /**
+     * @return list<Car>
+     */
+    public function getOfflineCars(): array
+    {
+        $path = $this->offlineCarsStorePath();
+        if (is_file($path)) {
+            $raw = @file_get_contents($path);
+            if (\is_string($raw) && '' !== $raw) {
+                $rows = json_decode($raw, true);
+                if (\is_array($rows) && !empty($rows)) {
+                    $cars = [];
+                    foreach ($rows as $r) {
+                        $c = (new Car())
+                            ->setId((int) ($r['id'] ?? 1))
+                            ->setName((string) ($r['name'] ?? 'Toyota Vios'))
+                            ->setType((string) ($r['type'] ?? 'Sedan'))
+                            ->setPrice((int) ($r['price'] ?? 2200))
+                            ->setGear((string) ($r['gear'] ?? 'Manual'))
+                            ->setSeats((int) ($r['seats'] ?? 5))
+                            ->setDoors((int) ($r['doors'] ?? 4))
+                            ->setBagLarge((int) ($r['bag_large'] ?? 2))
+                            ->setBagSmall((int) ($r['bag_small'] ?? 2))
+                            ->setKids((int) ($r['kids'] ?? 1))
+                            ->setAircon((bool) ($r['aircon'] ?? true))
+                            ->setImg((string) ($r['img'] ?? 'images/toyota-vios.png'))
+                            ->setAvailable((bool) ($r['available'] ?? true))
+                            ->setCreatedBy(isset($r['created_by']) ? (int) $r['created_by'] : 1);
+                        $cars[] = $c;
+                    }
+
+                    return $cars;
+                }
+            }
+        }
+
+        $seed = [
+            [1, 'Toyota Avanza', 'MPV', 2800, 'Manual', 7, 5, 2, 3, 3, true, 'images/toyota-avanza.png', true, 1],
+            [2, 'Mitsubishi Xpander', 'MPV', 3000, 'Auto', 7, 5, 3, 2, 3, true, 'images/mitsubishi-xpander.png', true, 1],
+            [3, 'Toyota Innova', 'MPV', 3500, 'Manual', 8, 5, 3, 3, 3, true, 'images/toyota-innova.png', true, 1],
+            [4, 'Toyota Fortuner', 'SUV', 4500, 'Auto', 7, 5, 3, 3, 3, true, 'images/toyota-fortuner.png', true, 1],
+            [5, 'Mitsubishi Montero Sport', 'SUV', 4300, 'Auto', 7, 5, 3, 3, 3, true, 'images/mitsubishi-montero.png', true, 1],
+            [6, 'Ford Everest', 'SUV', 4800, 'Auto', 7, 5, 4, 2, 3, true, 'images/ford-everest.png', true, 1],
+            [7, 'Toyota Vios', 'Sedan', 2200, 'Manual', 5, 4, 2, 2, 2, true, 'images/toyota-vios.png', true, 1],
+            [8, 'Honda City', 'Sedan', 2400, 'Auto', 5, 4, 2, 2, 2, true, 'images/honda-city.png', true, 1],
+            [9, 'Suzuki Swift', 'Hatchback', 1900, 'Manual', 5, 5, 1, 2, 2, true, 'images/suzuki-swift.png', true, 1],
+            [10, 'Toyota Wigo', 'Hatchback', 1600, 'Manual', 5, 5, 1, 2, 1, true, 'images/toyota-wigo.png', true, 1],
+            [11, 'Toyota Corolla Altis', 'Sedan', 2600, 'Auto', 5, 4, 2, 2, 2, true, 'images/toyota-corolla-altis.png', true, 2],
+            [12, 'Kia Picanto', 'Hatchback', 1500, 'Manual', 5, 5, 1, 2, 1, true, 'images/kia-picanto.png', true, 2],
+        ];
+
+        $defaults = [];
+        foreach ($seed as [$id, $name, $type, $price, $gear, $seats, $doors, $bL, $bS, $kids, $ac, $img, $av, $cBy]) {
+            $defaults[] = (new Car())
+                ->setId($id)
+                ->setName($name)
+                ->setType($type)
+                ->setPrice($price)
+                ->setGear($gear)
+                ->setSeats($seats)
+                ->setDoors($doors)
+                ->setBagLarge($bL)
+                ->setBagSmall($bS)
+                ->setKids($kids)
+                ->setAircon($ac)
+                ->setImg($img)
+                ->setAvailable($av)
+                ->setCreatedBy($cBy);
+        }
+
+        $this->persistOfflineCars($defaults);
+
+        return $defaults;
+    }
+
+    /**
+     * @param list<Car> $cars
+     */
+    public function persistOfflineCars(array $cars): void
+    {
+        $rows = [];
+        foreach ($cars as $c) {
+            $rows[] = [
+                'id' => $c->getId(),
+                'name' => $c->getName(),
+                'type' => $c->getType(),
+                'price' => $c->getPrice(),
+                'gear' => $c->getGear(),
+                'seats' => $c->getSeats(),
+                'doors' => $c->getDoors(),
+                'bag_large' => $c->getBagLarge(),
+                'bag_small' => $c->getBagSmall(),
+                'kids' => $c->getKids(),
+                'aircon' => $c->isAircon() ? 1 : 0,
+                'img' => $c->getImg(),
+                'available' => $c->isAvailable() ? 1 : 0,
+                'created_by' => $c->getCreatedBy(),
+            ];
+        }
+        @file_put_contents($this->offlineCarsStorePath(), json_encode($rows, \JSON_PRETTY_PRINT));
+    }
+
+    public function findOfflineCarById(int $id): ?Car
+    {
+        foreach ($this->getOfflineCars() as $c) {
+            if ($c->getId() === $id) {
+                return $c;
+            }
+        }
+
+        return null;
+    }
+
+    public function saveOfflineCar(Car $target): Car
+    {
+        $cars = $this->getOfflineCars();
+        $found = false;
+        $maxId = 0;
+
+        foreach ($cars as $idx => $c) {
+            if ((int) $c->getId() > $maxId) {
+                $maxId = (int) $c->getId();
+            }
+            if (null !== $target->getId() && $c->getId() === $target->getId()) {
+                $cars[$idx] = $target;
+                $found = true;
+            }
+        }
+
+        if (!$found) {
+            if (null === $target->getId() || 0 === $target->getId()) {
+                $target->setId($maxId + 1);
+            }
+            $cars[] = $target;
+        }
+
+        $this->persistOfflineCars($cars);
+
+        return $target;
+    }
+
+    public function deleteOfflineCar(int $id): bool
+    {
+        $cars = $this->getOfflineCars();
+        $filtered = [];
+        $deleted = false;
+        foreach ($cars as $c) {
+            if ($c->getId() === $id) {
+                $deleted = true;
+                continue;
+            }
+            $filtered[] = $c;
+        }
+        if ($deleted) {
+            $this->persistOfflineCars($filtered);
+        }
+
+        return $deleted;
+    }
 }

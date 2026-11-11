@@ -37,9 +37,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             try {
                 $this->getEntityManager()->persist($user);
                 $this->getEntityManager()->flush();
+                return;
             } catch (\Throwable) {
             }
         }
+
+        $this->saveOfflineUser($user);
     }
 
     public function findUserFlexible(string $identifier): ?User
@@ -56,8 +59,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         }
 
         // fallback accounts kung offline ang Docker MySQL
-        foreach ($this->defaultOfflineUsers() as $u) {
+        foreach ($this->getOfflineUsers() as $u) {
             if (0 === strcasecmp((string) $u->getUsername(), $identifier) || 0 === strcasecmp((string) $u->getEmail(), $identifier)) {
+                return $u;
+            }
+        }
+
+        return null;
+    }
+
+    public function findOfflineById(int $id): ?User
+    {
+        foreach ($this->getOfflineUsers() as $u) {
+            if ($u->getId() === $id) {
                 return $u;
             }
         }
@@ -81,6 +95,13 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', $user::class));
         }
 
+        if (null !== $user->getId() && !$this->carRepository->ensureSeeded()) {
+            $byId = $this->findOfflineById($user->getId());
+            if ($byId instanceof User) {
+                return $byId;
+            }
+        }
+
         $reloaded = $this->findUserFlexible($user->getUserIdentifier());
 
         return $reloaded ?? $user;
@@ -91,21 +112,43 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return User::class === $class || is_subclass_of($class, User::class);
     }
 
-    /**
-     * @var list<User>|null
-     */
-    private static ?array $offlineUsers = null;
+    private function offlineStorePath(): string
+    {
+        return sys_get_temp_dir() . '/shift_offline_users_v1.json';
+    }
 
     /**
      * @return list<User>
      */
-    private function defaultOfflineUsers(): array
+    public function getOfflineUsers(): array
     {
-        if (null !== self::$offlineUsers) {
-            return self::$offlineUsers;
+        $path = $this->offlineStorePath();
+        if (is_file($path)) {
+            $raw = @file_get_contents($path);
+            if (\is_string($raw) && '' !== $raw) {
+                $rows = json_decode($raw, true);
+                if (\is_array($rows) && !empty($rows)) {
+                    $users = [];
+                    foreach ($rows as $r) {
+                        $u = (new User())
+                            ->setId((int) ($r['id'] ?? 1))
+                            ->setUsername((string) ($r['username'] ?? $r['email'] ?? ''))
+                            ->setEmail((string) ($r['email'] ?? ''))
+                            ->setFullName((string) ($r['full_name'] ?? ''))
+                            ->setPhone((string) ($r['phone'] ?? ''))
+                            ->setRole((string) ($r['role'] ?? 'customer'))
+                            ->setIsActive((int) ($r['is_active'] ?? 1))
+                            ->setCreatedAt((string) ($r['created_at'] ?? '2026-08-01 09:00:00'))
+                            ->setPassword((string) ($r['password'] ?? ''));
+                        $users[] = $u;
+                    }
+
+                    return $users;
+                }
+            }
         }
 
-        return self::$offlineUsers = [
+        $defaults = [
             (new User())
                 ->setId(1)
                 ->setUsername('sheene@admin.com')
@@ -136,6 +179,89 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                 ->setIsActive(1)
                 ->setCreatedAt('2026-08-10 09:00:00')
                 ->setPassword(password_hash('customer123', \PASSWORD_BCRYPT, ['cost' => 4])),
+            (new User())
+                ->setId(4)
+                ->setUsername('angela.reyes@yahoo.com')
+                ->setEmail('angela.reyes@yahoo.com')
+                ->setFullName('Angela Reyes')
+                ->setPhone('09183304821')
+                ->setRole('customer')
+                ->setIsActive(1)
+                ->setCreatedAt('2026-08-14 09:15:00')
+                ->setPassword(password_hash('customer123', \PASSWORD_BCRYPT, ['cost' => 4])),
         ];
+
+        $this->persistOfflineUsers($defaults);
+
+        return $defaults;
+    }
+
+    /**
+     * @param list<User> $users
+     */
+    public function persistOfflineUsers(array $users): void
+    {
+        $rows = [];
+        foreach ($users as $u) {
+            $rows[] = [
+                'id' => $u->getId(),
+                'username' => $u->getUsername(),
+                'email' => $u->getEmail(),
+                'full_name' => $u->getFullName(),
+                'phone' => $u->getPhone(),
+                'role' => $u->getRole(),
+                'is_active' => $u->getIsActive(),
+                'created_at' => $u->getCreatedAt(),
+                'password' => $u->getPassword(),
+            ];
+        }
+        @file_put_contents($this->offlineStorePath(), json_encode($rows, \JSON_PRETTY_PRINT));
+    }
+
+    public function saveOfflineUser(User $target): User
+    {
+        $users = $this->getOfflineUsers();
+        $found = false;
+        $maxId = 0;
+
+        foreach ($users as $idx => $u) {
+            if ((int) $u->getId() > $maxId) {
+                $maxId = (int) $u->getId();
+            }
+            if (null !== $target->getId() && $u->getId() === $target->getId()) {
+                $users[$idx] = $target;
+                $found = true;
+            }
+        }
+
+        if (!$found) {
+            if (null === $target->getId() || 0 === $target->getId()) {
+                $target->setId($maxId + 1);
+            }
+            $users[] = $target;
+        }
+
+        $this->persistOfflineUsers($users);
+
+        return $target;
+    }
+
+    public function deleteOfflineUser(int $id): bool
+    {
+        $users = $this->getOfflineUsers();
+        $filtered = [];
+        $deleted = false;
+        foreach ($users as $u) {
+            if ($u->getId() === $id) {
+                $deleted = true;
+                continue;
+            }
+            $filtered[] = $u;
+        }
+        if ($deleted) {
+            $this->persistOfflineUsers($filtered);
+        }
+
+        return $deleted;
     }
 }

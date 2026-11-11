@@ -49,7 +49,7 @@ final class AdminCustomerController extends AbstractController
 
         $dbReady = $carRepository->ensureSeeded();
 
-        if ($dbReady && $request->isMethod('POST')) {
+        if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_user_action', (string) $request->request->get('_token'))) {
                 $this->addFlash('warning', 'Invalid security token. Please try again.');
 
@@ -80,7 +80,11 @@ final class AdminCustomerController extends AbstractController
                     return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
                 }
 
-                if (null !== $userRepository->findOneBy(['username' => $email]) || null !== $userRepository->findOneBy(['email' => $email])) {
+                $exists = $dbReady
+                    ? (null !== $userRepository->findOneBy(['username' => $email]) || null !== $userRepository->findOneBy(['email' => $email]))
+                    : (null !== $userRepository->findUserFlexible($email));
+
+                if ($exists) {
                     $this->addFlash('warning', 'An account with that email address already exists.');
 
                     return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
@@ -100,15 +104,19 @@ final class AdminCustomerController extends AbstractController
                     ->setCreatedAt(date('Y-m-d H:i:s'));
                 $newUser->setPassword($passwordHasher->hashPassword($newUser, $plainPass));
 
-                $em->persist($newUser);
-                $em->flush();
+                if ($dbReady) {
+                    $em->persist($newUser);
+                    $em->flush();
+                } else {
+                    $userRepository->saveOfflineUser($newUser);
+                }
 
                 $this->addFlash('success', sprintf('%s account "%s" created.', ucfirst($role), $fullName));
 
                 return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
             }
 
-            $u = $userId > 0 ? $userRepository->find($userId) : null;
+            $u = $userId > 0 ? ($dbReady ? $userRepository->find($userId) : $userRepository->findOfflineById($userId)) : null;
 
             if (null !== $u) {
                 if ('edit_user' === $action) {
@@ -123,7 +131,7 @@ final class AdminCustomerController extends AbstractController
                         return $this->redirectToRoute('admin_customer', ['view' => $viewRedirect]);
                     }
 
-                    $dup = $userRepository->findOneBy(['email' => $email]);
+                    $dup = $dbReady ? $userRepository->findOneBy(['email' => $email]) : $userRepository->findUserFlexible($email);
                     if (null !== $dup && $dup->getId() !== $u->getId()) {
                         $this->addFlash('warning', 'That email address is already in use by another account.');
 
@@ -139,26 +147,42 @@ final class AdminCustomerController extends AbstractController
                         ->setUsername($email)
                         ->setPhone($phone);
 
-                    $em->flush();
+                    if ($dbReady) {
+                        $em->flush();
+                    } else {
+                        $userRepository->saveOfflineUser($u);
+                    }
                     $this->addFlash('success', sprintf('Account "%s" updated.', $u->getFullName()));
                 } elseif ('delete' === $action) {
                     $currentUser = $this->getUser();
                     if ($currentUser instanceof User && $currentUser->getId() === $u->getId()) {
                         $this->addFlash('warning', 'You cannot delete your own active admin account.');
                     } else {
-                        $em->remove($u);
-                        $em->flush();
+                        if ($dbReady) {
+                            $em->remove($u);
+                            $em->flush();
+                        } else {
+                            $userRepository->deleteOfflineUser((int) $u->getId());
+                        }
                         $this->addFlash('success', sprintf('Account "%s" deleted.', $u->getFullName()));
                     }
                 } elseif ('reset_password' === $action) {
                     $tempPass = 'Shift-' . random_int(1000, 9999);
                     $u->setPassword($passwordHasher->hashPassword($u, $tempPass));
-                    $em->flush();
+                    if ($dbReady) {
+                        $em->flush();
+                    } else {
+                        $userRepository->saveOfflineUser($u);
+                    }
                     $this->addFlash('temp_password', $tempPass);
                 } elseif ($request->request->has('is_active')) {
                     $act = $request->request->getInt('is_active', 1);
                     $u->setIsActive($act);
-                    $em->flush();
+                    if ($dbReady) {
+                        $em->flush();
+                    } else {
+                        $userRepository->saveOfflineUser($u);
+                    }
                     $this->addFlash('success', sprintf('Account "%s" %s.', $u->getFullName(), $act ? 'enabled' : 'disabled'));
                 }
             }
@@ -170,62 +194,64 @@ final class AdminCustomerController extends AbstractController
             $allUsers = $userRepository->findAll();
             $allBookings = $bookingRepository->findAll();
             $allReviews = $reviewRepository->findAll();
-
-            $all = array_map(static function (User $u) use ($allBookings, $allReviews): array {
-                $bkCount = 0;
-                $liveCount = 0;
-                $doneCount = 0;
-                $spent = 0;
-                $lastBooked = null;
-
-                foreach ($allBookings as $b) {
-                    if ($b->getUserId() === $u->getId() || strtolower($b->getEmail()) === strtolower((string) $u->getEmail())) {
-                        ++$bkCount;
-                        if (\in_array($b->getStatus(), ['pending', 'confirmed'], true)) {
-                            ++$liveCount;
-                        }
-                        if ('completed' === $b->getStatus()) {
-                            ++$doneCount;
-                        }
-                        if (\in_array($b->getStatus(), ['confirmed', 'completed'], true)) {
-                            $spent += $b->getTotal();
-                        }
-                        if (null === $lastBooked || $b->getCreatedAt() > $lastBooked) {
-                            $lastBooked = substr($b->getCreatedAt(), 0, 10);
-                        }
-                    }
-                }
-
-                $revCount = 0;
-                foreach ($allReviews as $r) {
-                    if ($r->getUserId() === $u->getId() || strtolower($r->getEmail()) === strtolower((string) $u->getEmail())) {
-                        ++$revCount;
-                    }
-                }
-
-                return [
-                    'id' => $u->getId(),
-                    'full_name' => $u->getFullName(),
-                    'email' => (string) $u->getEmail(),
-                    'phone' => $u->getPhone(),
-                    'role' => $u->getRole(),
-                    'is_active' => $u->getIsActive(),
-                    'created_at' => $u->getCreatedAt(),
-                    'bookings' => $bkCount,
-                    'live' => $liveCount,
-                    'done' => $doneCount,
-                    'reviews' => $revCount,
-                    'spent' => $spent,
-                    'last_booked' => $lastBooked,
-                ];
-            }, $allUsers);
-
-            usort($all, static fn (array $a, array $b): int => $b['spent'] <=> $a['spent']);
             $unread = $messageRepository->count(['isRead' => 0]);
         } else {
-            $all = $this->sampleCustomers();
+            $allUsers = $userRepository->getOfflineUsers();
+            $allBookings = [];
+            $allReviews = [];
             $unread = 2;
         }
+
+        $all = array_map(static function (User $u) use ($allBookings, $allReviews): array {
+            $bkCount = 0;
+            $liveCount = 0;
+            $doneCount = 0;
+            $spent = 0;
+            $lastBooked = null;
+
+            foreach ($allBookings as $b) {
+                if ($b->getUserId() === $u->getId() || strtolower($b->getEmail()) === strtolower((string) $u->getEmail())) {
+                    ++$bkCount;
+                    if (\in_array($b->getStatus(), ['pending', 'confirmed'], true)) {
+                        ++$liveCount;
+                    }
+                    if ('completed' === $b->getStatus()) {
+                        ++$doneCount;
+                    }
+                    if (\in_array($b->getStatus(), ['confirmed', 'completed'], true)) {
+                        $spent += $b->getTotal();
+                    }
+                    if (null === $lastBooked || $b->getCreatedAt() > $lastBooked) {
+                        $lastBooked = substr($b->getCreatedAt(), 0, 10);
+                    }
+                }
+            }
+
+            $revCount = 0;
+            foreach ($allReviews as $r) {
+                if ($r->getUserId() === $u->getId() || strtolower($r->getEmail()) === strtolower((string) $u->getEmail())) {
+                    ++$revCount;
+                }
+            }
+
+            return [
+                'id' => $u->getId(),
+                'full_name' => $u->getFullName(),
+                'email' => (string) $u->getEmail(),
+                'phone' => $u->getPhone(),
+                'role' => $u->getRole(),
+                'is_active' => $u->getIsActive(),
+                'created_at' => $u->getCreatedAt(),
+                'bookings' => $bkCount,
+                'live' => $liveCount,
+                'done' => $doneCount,
+                'reviews' => $revCount,
+                'spent' => $spent,
+                'last_booked' => $lastBooked,
+            ];
+        }, $allUsers);
+
+        usort($all, static fn (array $a, array $b): int => $b['spent'] <=> $a['spent']);
 
         $thisMonth = date('Y-m');
         $stats = [

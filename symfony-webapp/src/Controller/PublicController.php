@@ -816,7 +816,7 @@ final class PublicController extends AbstractController
         $passErrors = [];
         $old        = [];
 
-        if ($dbReady && $request->isMethod('POST')) {
+        if ($request->isMethod('POST')) {
             $action = (string) $request->request->get('action', 'update_profile');
 
             if ('change_password' === $action) {
@@ -852,7 +852,11 @@ final class PublicController extends AbstractController
 
                 if (empty($passErrors)) {
                     $user->setPassword($passwordHasher->hashPassword($user, $new));
-                    $em->flush();
+                    if ($dbReady) {
+                        $em->flush();
+                    } else {
+                        $userRepository->saveOfflineUser($user);
+                    }
                     return $this->redirectToRoute('profile', ['password' => 1]);
                 }
             } else {
@@ -882,7 +886,7 @@ final class PublicController extends AbstractController
                 }
 
                 if (empty($infoErrors)) {
-                    $existing = $userRepository->findOneBy(['username' => $email]);
+                    $existing = $dbReady ? $userRepository->findOneBy(['username' => $email]) : $userRepository->findUserFlexible($email);
                     if (null !== $existing && $existing->getId() !== $user->getId()) {
                         $infoErrors[] = 'That email address is already used by another account.';
                     }
@@ -893,7 +897,11 @@ final class PublicController extends AbstractController
                     $user->setEmail($email);
                     $user->setUsername($email);
                     $user->setPhone($phone);
-                    $em->flush();
+                    if ($dbReady) {
+                        $em->flush();
+                    } else {
+                        $userRepository->saveOfflineUser($user);
+                    }
 
                     return $this->redirectToRoute('profile', ['saved' => 1]);
                 }

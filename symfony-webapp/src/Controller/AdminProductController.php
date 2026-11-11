@@ -45,7 +45,7 @@ class AdminProductController extends AbstractController
         $currentUserId = $user instanceof User ? $user->getId() : null;
         $isAdmin = $this->isGranted('ROLE_ADMIN');
 
-        if ($dbReady && $request->isMethod('POST')) {
+        if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_product_action', (string) $request->request->get('_token'))) {
                 $this->addFlash('warning', 'Invalid security token. Please try again.');
 
@@ -81,10 +81,14 @@ class AdminProductController extends AbstractController
                     ->setImg((string) $request->request->get('img', 'images/toyota-vios.png'))
                     ->setAvailable(true)
                     ->setCreatedBy($currentUserId);
-                $em->persist($car);
-                $em->flush();
+                if ($dbReady) {
+                    $em->persist($car);
+                    $em->flush();
+                } else {
+                    $carRepository->saveOfflineCar($car);
+                }
                 $this->addFlash('success', 'Vehicle added to the fleet.');
-            } elseif ($carId > 0 && ($car = $carRepository->find($carId))) {
+            } elseif ($carId > 0 && ($car = ($dbReady ? $carRepository->find($carId) : $carRepository->findOfflineCarById($carId)))) {
                 // admin makausab bisan unsa, staff ang iyaha ra nga gi-add
                 $canModify = $isAdmin || (null !== $currentUserId && $car->getCreatedBy() === $currentUserId);
 
@@ -107,16 +111,28 @@ class AdminProductController extends AbstractController
                         ->setKids(max(0, (int) $request->request->get('kids', $car->getKids())))
                         ->setAircon((bool) $request->request->get('aircon', $car->isAircon()))
                         ->setImg((string) $request->request->get('img', $car->getImg()));
-                    $em->flush();
+                    if ($dbReady) {
+                        $em->flush();
+                    } else {
+                        $carRepository->saveOfflineCar($car);
+                    }
                     $this->addFlash('success', 'Vehicle updated.');
                 } elseif (\in_array($action, ['toggle', 'toggle_car'], true) || $request->request->has('available')) {
                     $avail = '1' === (string) $request->request->get('available', '0');
                     $car->setAvailable($avail);
-                    $em->flush();
+                    if ($dbReady) {
+                        $em->flush();
+                    } else {
+                        $carRepository->saveOfflineCar($car);
+                    }
                     $this->addFlash('success', 'Availability changed.');
                 } elseif (\in_array($action, ['delete', 'drop_car'], true)) {
-                    $em->remove($car);
-                    $em->flush();
+                    if ($dbReady) {
+                        $em->remove($car);
+                        $em->flush();
+                    } else {
+                        $carRepository->deleteOfflineCar((int) $car->getId());
+                    }
                     $this->addFlash('success', 'Vehicle deleted.');
                 }
             }
@@ -128,67 +144,72 @@ class AdminProductController extends AbstractController
             $allCarEntities = $carRepository->findBy([], ['type' => 'ASC', 'name' => 'ASC']);
             $allBookings = $bookingRepository->findAll();
             $openRepairs = $maintenanceRepository->findBy(['resolved' => false]);
-            $usersById = [];
-            foreach ($userRepository->findAll() as $u) {
-                $usersById[$u->getId()] = $u->getFullName();
-            }
-
-            $populateMeta = static function (Car $c) use ($allBookings, $openRepairs, $usersById, $currentUserId, $isAdmin): array {
-                $totalBk = 0;
-                $liveBk = 0;
-                foreach ($allBookings as $b) {
-                    if ($b->getCarId() === $c->getId()) {
-                        ++$totalBk;
-                        if (\in_array($b->getStatus(), ['pending', 'confirmed'], true)) {
-                            ++$liveBk;
-                        }
-                    }
-                }
-                $repNote = null;
-                $repUntil = null;
-                foreach ($openRepairs as $r) {
-                    if ($r->getCarId() === $c->getId()) {
-                        $repNote = $r->getDescription();
-                        $repUntil = $r->getEndDate();
-                        break;
-                    }
-                }
-
-                $creatorId = $c->getCreatedBy();
-                $isMine = null !== $currentUserId && $creatorId === $currentUserId;
-                $ownerName = null !== $creatorId && isset($usersById[$creatorId]) ? $usersById[$creatorId] : 'Admin';
-
-                return [
-                    'id' => $c->getId(),
-                    'name' => $c->getName(),
-                    'type' => $c->getType(),
-                    'price' => $c->getPrice(),
-                    'gear' => $c->getGear(),
-                    'seats' => $c->getSeats(),
-                    'doors' => $c->getDoors(),
-                    'bag_large' => $c->getBagLarge(),
-                    'bag_small' => $c->getBagSmall(),
-                    'kids' => $c->getKids(),
-                    'aircon' => $c->isAircon() ? 1 : 0,
-                    'img' => $c->getImg(),
-                    'available' => $c->isAvailable() ? 1 : 0,
-                    'bookings' => $totalBk,
-                    'live' => $liveBk,
-                    'repair_note' => $repNote,
-                    'repair_until' => $repUntil,
-                    'created_by' => $creatorId,
-                    'owner_name' => $isMine ? 'You (' . $ownerName . ')' : $ownerName,
-                    'is_mine' => $isMine,
-                    'can_edit' => $isAdmin || $isMine,
-                ];
-            };
-
-            $all = array_map($populateMeta, $allCarEntities);
+            $userList = $userRepository->findAll();
             $unread = $messageRepository->count(['isRead' => 0]);
         } else {
-            $all = $this->sampleCars($currentUserId, $isAdmin);
+            $allCarEntities = $carRepository->getOfflineCars();
+            $allBookings = [];
+            $openRepairs = [];
+            $userList = $userRepository->getOfflineUsers();
             $unread = 2;
         }
+
+        $usersById = [];
+        foreach ($userList as $u) {
+            $usersById[$u->getId()] = $u->getFullName();
+        }
+
+        $populateMeta = static function (Car $c) use ($allBookings, $openRepairs, $usersById, $currentUserId, $isAdmin): array {
+            $totalBk = 0;
+            $liveBk = 0;
+            foreach ($allBookings as $b) {
+                if ($b->getCarId() === $c->getId()) {
+                    ++$totalBk;
+                    if (\in_array($b->getStatus(), ['pending', 'confirmed'], true)) {
+                        ++$liveBk;
+                    }
+                }
+            }
+            $repNote = null;
+            $repUntil = null;
+            foreach ($openRepairs as $r) {
+                if ($r->getCarId() === $c->getId()) {
+                    $repNote = $r->getDescription();
+                    $repUntil = $r->getEndDate();
+                    break;
+                }
+            }
+
+            $creatorId = $c->getCreatedBy();
+            $isMine = null !== $currentUserId && $creatorId === $currentUserId;
+            $ownerName = null !== $creatorId && isset($usersById[$creatorId]) ? $usersById[$creatorId] : 'Admin';
+
+            return [
+                'id' => $c->getId(),
+                'name' => $c->getName(),
+                'type' => $c->getType(),
+                'price' => $c->getPrice(),
+                'gear' => $c->getGear(),
+                'seats' => $c->getSeats(),
+                'doors' => $c->getDoors(),
+                'bag_large' => $c->getBagLarge(),
+                'bag_small' => $c->getBagSmall(),
+                'kids' => $c->getKids(),
+                'aircon' => $c->isAircon() ? 1 : 0,
+                'img' => $c->getImg(),
+                'available' => $c->isAvailable() ? 1 : 0,
+                'bookings' => $totalBk,
+                'live' => $liveBk,
+                'repair_note' => $repNote,
+                'repair_until' => $repUntil,
+                'created_by' => $creatorId,
+                'owner_name' => $isMine ? 'You (' . $ownerName . ')' : $ownerName,
+                'is_mine' => $isMine,
+                'can_edit' => $isAdmin || $isMine,
+            ];
+        };
+
+        $all = array_map($populateMeta, $allCarEntities);
 
         $total = \count($all);
         $liveCount = 0;
